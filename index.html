@@ -379,6 +379,104 @@
   .tip.on { opacity: 1; }
   .tbl-view { display: none; margin-top: 14px; }
   .tbl-view.on { display: block; }
+
+  /* ==========================================================================
+     セッション記録モード(トレーニング中にトレーナーが片手で叩く画面)
+     前提: 立ったまま・画面を見る時間は1秒・指は乾いていない。
+     したがって ①タップ対象は56px以上 ②1タップ=1セット ③取り消しが常に見える
+     ========================================================================== */
+  .sess {
+    position: fixed; inset: 0; z-index: 350; background: var(--sand); display: none;
+    flex-direction: column; overflow: hidden;
+  }
+  .sess.on { display: flex; }
+  .sess-head {
+    background: #fff; border-bottom: 1px solid var(--line); padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px; flex: 0 0 auto;
+  }
+  .sess-head .nm { flex: 1; font-weight: 700; font-size: 16px; }
+  .sess-head .el { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--ink-soft); }
+  .sess-head .cl { background: none; border: none; font-size: 24px; color: var(--ink-soft); cursor: pointer; min-height: 44px; min-width: 44px; }
+  .sess-body { flex: 1; overflow-y: auto; padding: 14px 14px 20px; }
+  .sess-body .inner { max-width: 460px; margin: 0 auto; }
+  .sess-foot {
+    flex: 0 0 auto; background: #fff; border-top: 1px solid var(--line);
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  }
+  .sess-foot .inner { max-width: 460px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+  .sess-foot .cnt { flex: 1; font-size: 12.5px; color: var(--ink-soft); }
+
+  .exc { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+  .exc .top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+  .exc .top .n { font-weight: 700; font-size: 16px; flex: 1; }
+  .exc .top .p { font-size: 11.5px; color: var(--ink-soft); white-space: nowrap; }
+  .exc .del { background: none; border: none; color: var(--ink-soft); font-size: 15px; cursor: pointer; min-height: 44px; min-width: 36px; }
+
+  /* ステッパー: 中央の値は「今から記録する値」 */
+  .step { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .step .cap { width: 34px; font-size: 12px; color: var(--ink-soft); }
+  .step button {
+    width: 56px; height: 56px; border-radius: 18px; border: 1px solid var(--line);
+    background: #fff; font-size: 24px; font-weight: 300; cursor: pointer; line-height: 1;
+  }
+  .step button:active { background: var(--clay-soft); }
+  .step .v { flex: 1; text-align: center; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .step .v small { font-size: 13px; font-weight: 400; color: var(--ink-soft); margin-left: 2px; }
+
+  .setbtn {
+    width: 100%; min-height: 60px; border-radius: 20px; border: none; background: var(--clay); color: #fff;
+    font-size: 17px; font-weight: 700; cursor: pointer; margin-top: 4px;
+    transition: transform .12s cubic-bezier(.2,.7,.3,1), background .15s ease;
+  }
+  .setbtn:active { transform: scale(.97); background: var(--clay-deep); }
+  .setbtn.flash { background: var(--sage); }
+
+  .sets { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .sets .s {
+    background: var(--sage-soft); color: #4E5B42; border: 1px solid #DCE3D5; border-radius: 14px;
+    padding: 8px 12px; font-size: 13px; min-height: 44px; display: flex; align-items: center; gap: 8px;
+  }
+  .sets .s .no { font-weight: 700; }
+  .sets .s button { background: none; border: none; color: #7d8a71; cursor: pointer; font-size: 15px; line-height: 1; padding: 0 2px; }
+  .sets .rest { background: var(--ember-soft); color: #8A5D14; border-color: #F0DFC0; font-variant-numeric: tabular-nums; }
+
+  .addex { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 16px; }
+  .addex button {
+    background: #fff; border: 1px dashed var(--line); border-radius: 20px; padding: 10px 16px;
+    font-size: 13.5px; cursor: pointer; min-height: 46px; color: var(--ink);
+  }
+  .addex button:active { background: var(--clay-soft); }
+
+  /* ==========================================================================
+     補給ガイド(その回の種目から組み立てる)
+     情報の提示なので sky(情報)の帯。食事の強制ではないことが伝わる見た目にする。
+     ========================================================================== */
+  .nutri { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .nutri .hd { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .nutri .hd h3 { font-size: 15px; }
+  .nutri .lead { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 14px; }
+  .nutri .step2 { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .nutri .step2:last-of-type { border-bottom: none; }
+  .nutri .tm {
+    flex: 0 0 76px; font-size: 11px; font-weight: 700; color: #3E6580;
+    background: var(--sky-soft); border-radius: 10px; padding: 6px 4px; text-align: center; height: fit-content;
+  }
+  .nutri .bd { flex: 1; min-width: 0; }
+  .nutri .bd .ttl { font-weight: 700; font-size: 14px; }
+  .nutri .bd .amt { font-size: 13px; color: var(--clay-deep); font-weight: 500; }
+  .nutri .bd .ex { font-size: 12.5px; color: var(--ink-soft); margin-top: 3px; }
+  .nutri .why { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+  .nutri .caution {
+    background: var(--sand); border-radius: var(--radius-sm); padding: 11px 13px;
+    font-size: 11.5px; color: var(--ink-soft); margin-top: 14px;
+  }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 96px; transform: translate(-50%, 12px); z-index: 420;
+    background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 24px; font-size: 14px;
+    opacity: 0; transition: opacity .2s ease, transform .2s ease; pointer-events: none;
+  }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
   .guide h3 { font-size: 15px; margin: 18px 0 6px; }
   .guide ol, .guide ul { margin-left: 1.2em; font-size: 14px; }
   .guide li { margin-bottom: 5px; }
@@ -615,6 +713,9 @@
         <strong>トレーナーから</strong><br>
         フォームが安定してきました。次回はスクワットを45kgに上げてみましょう。自宅では水分をこまめに。
       </div>
+
+      <!-- この回の種目から自動で組み立てる補給ガイド -->
+      <div class="nutri" id="nutriBlock"></div>
     </div>
 
     <div class="card">
@@ -652,6 +753,8 @@
       <ul>
         <li>「記録」タブで、体組成の推移とセッション内容を確認できます。</li>
         <li>トレーナーからのコメントもここに表示されます。</li>
+        <li>コメントの下に、<strong>その日にやった種目に合わせた補給のめやす</strong>が出ます(たんぱく質・炭水化物・水分の量と、食べ物の例)。量は体重から計算した一般的な目安です。</li>
+        <li>持病・アレルギー・服薬がある方、妊娠中の方は、そのまま実行せず担当トレーナーにご相談ください。</li>
       </ul>
     </div>
   </section>
@@ -709,16 +812,16 @@
         <div class="tlrow empty"><div class="hh">11:00</div><div class="pin"></div><div class="tlcard">空き枠(公開中)</div></div>
         <div class="tlrow"><div class="hh">14:00</div><div class="pin"></div>
           <div class="tlcard"><div class="who"><div class="n">桜井 みなみ <span class="badge ember">当日変更</span></div><div class="s">15:00 → 14:00 に変更(本人希望)/ 60分</div></div>
-            <button class="btn sm" onclick="markDone(this)">実施を記録</button></div></div>
+            <button class="btn sm" onclick="openSession(this)">記録しながら実施</button></div></div>
         <div class="tlrow"><div class="hh">16:00</div><div class="pin"></div>
           <div class="tlcard"><div class="who"><div class="n">田島 智之 <span class="badge rose">未収 ¥8,800</span></div><div class="s">都度払い / 前回分が未決済</div></div>
-            <button class="btn sm" onclick="markDone(this)">実施を記録</button></div></div>
+            <button class="btn sm" onclick="openSession(this)">記録しながら実施</button></div></div>
         <div class="tlrow"><div class="hh">18:00</div><div class="pin"></div>
           <div class="tlcard"><div class="who"><div class="n">中原 さくら <span class="badge clay">体験</span></div><div class="s">体験セッション / 30分 / 初回</div></div>
-            <button class="btn sm" onclick="markDone(this)">実施を記録</button></div></div>
+            <button class="btn sm" onclick="openSession(this)">記録しながら実施</button></div></div>
         <div class="tlrow"><div class="hh">19:00</div><div class="pin"></div>
           <div class="tlcard"><div class="who"><div class="n">久保 直人</div><div class="s">月4回プラン消化 / 60分</div></div>
-            <button class="btn sm" onclick="markDone(this)">実施を記録</button></div></div>
+            <button class="btn sm" onclick="openSession(this)">記録しながら実施</button></div></div>
       </div>
       <div class="todo" style="margin-top:14px;">
         <div class="muted">「実施を記録」で1回消化+カルテ入力に進みます。</div>
@@ -1102,10 +1205,21 @@
       <h3>1日の流れ</h3>
       <ol>
         <li><strong>朝</strong>: 「本日」タブを開きます。予約・未収・当日変更が1画面に出ます。</li>
-        <li><strong>セッション後</strong>: 「実施を記録」を押すと1回消化され、そのままカルテ入力に進みます。</li>
+        <li><strong>セッション中</strong>: 「記録しながら実施」を押すと記録モードが開きます(下記)。</li>
+        <li><strong>セッション後</strong>: 記録モードの「記録して終了」で1回消化され、カルテに反映されます。</li>
         <li><strong>都度払いの方</strong>: 実施記録のときに決済状態を確認します。未決済のまま帰られた場合は「未収」に入ります。</li>
         <li><strong>閉店後</strong>: 「売上・決済」の要対応が0件なら、その日の事務は終わりです。</li>
       </ol>
+      <h3>トレーニング中に記録する(記録モード)</h3>
+      <ul>
+        <li>開くと<strong>前回のメニューがそのまま並んでいます</strong>。前回と同じなら、あとは「セット完了」を押すだけです。</li>
+        <li>重量は ＋−、回数も ＋− で合わせます。ボタンは片手・立ったまま押せる大きさにしてあります。</li>
+        <li>「セット完了」を押すと、その内容が1セットとして下に並び、<strong>休憩時間が自動で計り始めます</strong>。</li>
+        <li>押し間違えたときは、並んだセットの「×」で取り消せます。</li>
+        <li>種目を足したいときは下の「＋ 種目名」から。使わない種目は右上の「×」で外せます。</li>
+        <li>最後に体重・体脂肪・所感を入れて「記録して終了」。1回消化され、会員のアプリにも記録が表示されます。</li>
+        <li>途中で閉じても記録は残ります(そのセッション中のみ)。</li>
+      </ul>
       <h3>電話で予約・変更を受けたとき</h3>
       <ol>
         <li>「予約管理」タブ → 該当の枠をクリック、または「代理で予約を入れる」。</li>
@@ -1161,6 +1275,53 @@
 <!-- ============================================================== -->
 <div class="veil" id="veil" onclick="closeAll()"></div>
 <div class="tip" id="tip"></div>
+<div class="toast" id="toast"></div>
+
+<!-- セッション記録モード(トレーニング中の入力) -->
+<div class="sess" id="sess">
+  <div class="sess-head">
+    <button class="cl" onclick="closeSession()" aria-label="閉じる">×</button>
+    <div class="nm" id="sessName">山口 彩</div>
+    <div class="el" id="sessElapsed">00:00</div>
+  </div>
+  <div class="sess-body">
+    <div class="inner">
+      <div class="card flat" style="padding:12px 14px;margin-bottom:14px;">
+        <div class="row between" style="gap:10px;flex-wrap:wrap;">
+          <div>
+            <div class="muted">前回 7/19 のメニューを開いています</div>
+            <div style="font-size:13px;">スクワット 40kg / ラットプルダウン 30kg / ヒップスラスト 50kg</div>
+          </div>
+          <button class="btn sm ghost" onclick="resetSession()">前回のまま戻す</button>
+        </div>
+      </div>
+
+      <div id="sessList"></div>
+
+      <div class="muted" style="margin-bottom:6px;">種目を追加</div>
+      <div class="addex" id="sessAdd"></div>
+
+      <div class="card">
+        <h2><span class="dot"></span>仕上げ(任意)</h2>
+        <div class="grid2">
+          <div class="field"><label>体重(kg)</label><input inputmode="decimal" placeholder="54.2"></div>
+          <div class="field"><label>体脂肪率(%)</label><input inputmode="decimal" placeholder="24.1"></div>
+        </div>
+        <div class="field"><label>所感・次回への申し送り</label><textarea placeholder="フォームが安定。次回スクワット45kgへ。"></textarea></div>
+        <div class="todo">
+          <div class="muted">保存すると1回消化され、会員のカルテに反映されます。</div>
+          <div class="todo-note">体組成を毎回測るのか、月1回なのか未確定。毎回でないなら入力欄は畳んでおく。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sess-foot">
+    <div class="inner">
+      <div class="cnt" id="sessCount">0セット</div>
+      <button class="btn" onclick="saveSession()">記録して終了</button>
+    </div>
+  </div>
+</div>
 
 <div class="sheet" id="sheetConfirm">
   <div class="grip"></div>
@@ -1275,7 +1436,9 @@
       </table>
       <div class="note" style="margin-top:10px;">フォーム安定。次回スクワット45kgへ。腰の違和感の訴えなし。</div>
     </div>
-    <div class="field"><label>今回の記録を追加</label><textarea placeholder="種目・重量・回数・所感"></textarea></div>
+    <button class="btn block" onclick="closeAll(); openSession('山口 彩')">セッション記録を開く</button>
+    <div class="muted" style="margin:8px 0 14px;">トレーニング中はこちら。ボタンを押すだけでセットが記録されます。</div>
+    <div class="field"><label>あとから手で追記する</label><textarea placeholder="種目・重量・回数・所感"></textarea></div>
     <div class="row" style="gap:10px;"><button class="btn sm">保存</button><button class="btn sm ghost">前回をコピー</button></div>
     <div class="todo" style="margin-top:14px;">
       <div class="muted">カルテは担当トレーナーとオーナーが閲覧できます。</div>
@@ -1426,12 +1589,6 @@ function doCancel() {
   goM('m-list');
 }
 
-function markDone(btn) {
-  const row = btn.closest('.tlrow');
-  row.classList.add('done');
-  btn.outerHTML = '<span class="badge sage">実施済</span><button class="btn sm ghost" onclick="openDrawer()">カルテ</button>';
-}
-
 function segTo(btn, id) {
   document.querySelectorAll('.seg button').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
@@ -1580,6 +1737,246 @@ function toggleTable(id, btn) {
   if (!el.dataset.filled) { el.innerHTML = TABLES[id](); el.dataset.filled = '1'; }
   const on = el.classList.toggle('on');
   btn.textContent = on ? '表を閉じる' : '表で見る';
+}
+
+/* ------------------------------------------------------------------
+   セッション記録モード
+   ・開くと「前回のメニュー」が並んでいる(パーソナルは前回の重量から始めるため)
+   ・重量と回数はステッパーで合わせ、「セット完了」1タップで1セット記録
+   ・記録したセットはその場に並び、タップで取り消せる(誤タップ前提の設計)
+   ・セット完了で休憩タイマーが自動で走る
+   ------------------------------------------------------------------ */
+const PREV_MENU = [
+  { name: 'スクワット',       unit: 'kg', w: 40, r: 10, prev: '前回 40kg 10×3' },
+  { name: 'ラットプルダウン', unit: 'kg', w: 30, r: 12, prev: '前回 30kg 12×3' },
+  { name: 'ヒップスラスト',   unit: 'kg', w: 50, r: 10, prev: '前回 50kg 10×3' },
+];
+const QUICK_EX = [
+  { name: 'ベンチプレス', unit: 'kg', w: 25, r: 10 },
+  { name: 'デッドリフト', unit: 'kg', w: 50, r: 8 },
+  { name: 'レッグプレス', unit: 'kg', w: 60, r: 12 },
+  { name: 'ダンベルカール', unit: 'kg', w: 8, r: 12 },
+  { name: 'プランク', unit: 'sec', w: 45, r: 1 },
+  { name: '腕立て伏せ', unit: 'bw', w: 0, r: 15 },
+];
+const STEP_W = { kg: 2.5, sec: 10, bw: 0 };
+
+let sessEx = [], sessStart = null, sessTimer = null, lastSetAt = null, sessRow = null, sessMember = null;
+
+function openSession(src) {
+  // src はタイムラインのボタン(会員名を行から拾う)か、会員名の文字列
+  let name = '会員';
+  if (typeof src === 'string') { sessRow = null; name = src; }
+  else if (src) {
+    sessRow = src.closest('.tlrow');
+    name = sessRow?.querySelector('.who .n')?.firstChild?.textContent.trim() || '会員';
+  }
+  document.getElementById('sessName').textContent = name + ' さん';
+  // 中断して戻ってきたときは記録を捨てない(呼ばれる・電話が鳴るのは日常のため)
+  const resuming = sessMember === name && sessEx.some(e => e.sets.length);
+  if (!resuming) {
+    sessEx = PREV_MENU.map(e => ({ ...e, sets: [] }));
+    sessStart = Date.now(); lastSetAt = null;
+  }
+  sessMember = name;
+  renderSession();
+  document.getElementById('sess').classList.add('on');
+  clearInterval(sessTimer);
+  sessTimer = setInterval(tickSession, 1000);
+}
+function closeSession() {
+  document.getElementById('sess').classList.remove('on');
+  clearInterval(sessTimer);
+}
+function resetSession() {
+  if (!confirm('記録したセットを消して、前回のメニューに戻します。よろしいですか?')) return;
+  sessEx = PREV_MENU.map(e => ({ ...e, sets: [] }));
+  lastSetAt = null;
+  renderSession();
+}
+function tickSession() {
+  const s = Math.floor((Date.now() - sessStart) / 1000);
+  document.getElementById('sessElapsed').textContent =
+    String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  const rest = document.getElementById('restLabel');
+  if (rest && lastSetAt) {
+    const r = Math.floor((Date.now() - lastSetAt) / 1000);
+    rest.textContent = '休憩 ' + Math.floor(r / 60) + ':' + String(r % 60).padStart(2, '0');
+  }
+}
+function amount(e) {
+  if (e.unit === 'bw') return '自重';
+  return e.w + (e.unit === 'kg' ? 'kg' : '秒');
+}
+function renderSession() {
+  const host = document.getElementById('sessList');
+  host.innerHTML = sessEx.map((e, i) => {
+    const sets = e.sets.map((s, j) => `
+      <span class="s"><span class="no">${j + 1}</span>${s.label}
+        <button onclick="undoSet(${i},${j})" aria-label="このセットを取り消す">×</button></span>`).join('');
+    const rest = (lastSetAt && e.sets.length && i === sessEx.lastIdx)
+      ? `<span class="s rest" id="restLabel">休憩 0:00</span>` : '';
+    const wStep = e.unit === 'bw' ? '' : `
+      <div class="step">
+        <span class="cap">${e.unit === 'kg' ? '重量' : '時間'}</span>
+        <button onclick="adjust(${i},'w',-1)">−</button>
+        <span class="v">${e.w}<small>${e.unit === 'kg' ? 'kg' : '秒'}</small></span>
+        <button onclick="adjust(${i},'w',1)">＋</button>
+      </div>`;
+    const rStep = e.unit === 'sec' ? '' : `
+      <div class="step">
+        <span class="cap">回数</span>
+        <button onclick="adjust(${i},'r',-1)">−</button>
+        <span class="v">${e.r}<small>回</small></span>
+        <button onclick="adjust(${i},'r',1)">＋</button>
+      </div>`;
+    return `<div class="exc">
+        <div class="top"><span class="n">${e.name}</span><span class="p">${e.prev || ''}</span>
+          <button class="del" onclick="removeEx(${i})" aria-label="種目を外す">×</button></div>
+        ${wStep}${rStep}
+        <button class="setbtn" id="setbtn${i}" onclick="completeSet(${i})">セット完了(${amount(e)}${e.unit === 'sec' ? '' : ' × ' + e.r + '回'})</button>
+        <div class="sets">${sets}${rest}</div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('sessAdd').innerHTML = QUICK_EX
+    .filter(q => !sessEx.some(e => e.name === q.name))
+    .map(q => `<button onclick="addEx('${q.name}')">＋ ${q.name}</button>`).join('');
+
+  const total = sessEx.reduce((n, e) => n + e.sets.length, 0);
+  document.getElementById('sessCount').textContent =
+    total === 0 ? 'まだ記録がありません' : `${total}セット / ${sessEx.filter(e => e.sets.length).length}種目`;
+}
+function adjust(i, key, dir) {
+  const e = sessEx[i];
+  if (key === 'w') e.w = Math.max(0, e.w + dir * STEP_W[e.unit]);
+  else e.r = Math.max(1, e.r + dir);
+  renderSession();
+}
+function completeSet(i) {
+  const e = sessEx[i];
+  e.sets.push({ label: e.unit === 'sec' ? `${e.w}秒` : `${amount(e)} × ${e.r}` });
+  lastSetAt = Date.now();
+  sessEx.lastIdx = i;
+  const btn = document.getElementById('setbtn' + i);
+  btn.classList.add('flash');
+  setTimeout(() => { renderSession(); tickSession(); }, 160);
+}
+function undoSet(i, j) { sessEx[i].sets.splice(j, 1); renderSession(); }
+function removeEx(i) { sessEx.splice(i, 1); renderSession(); }
+function addEx(name) {
+  const q = QUICK_EX.find(e => e.name === name);
+  sessEx.push({ ...q, sets: [] });
+  renderSession();
+}
+function saveSession() {
+  const total = sessEx.reduce((n, e) => n + e.sets.length, 0);
+  if (total === 0 && !confirm('セットが1つも記録されていません。実施済みとして保存しますか?')) return;
+  if (sessRow) {
+    sessRow.classList.add('done');
+    const btn = sessRow.querySelector('.setbtn, .btn.sm');
+    if (btn) btn.outerHTML = '<span class="badge sage">実施済</span><button class="btn sm ghost" onclick="openDrawer()">カルテ</button>';
+  }
+  closeSession();
+  sessMember = null; sessEx = [];
+  showToast(`${total}セットを記録しました(1回消化)`);
+}
+/* ------------------------------------------------------------------
+   補給ガイド: その回にやった種目から組み立てる
+   種目に付いたタグ(大筋群 / 有酸素 / 体幹 など)で必要な補給が変わるので、
+   ルールを純関数に切り出しておく(本実装ではここをそのままテスト対象にする)。
+   量は体重から計算した一般的な目安で、個別の栄養指導ではない。
+   ------------------------------------------------------------------ */
+const EX_TAGS = {
+  'スクワット': ['大筋群', '下半身'], 'デッドリフト': ['大筋群', '下半身', '背中'],
+  'ヒップスラスト': ['大筋群', '下半身'], 'レッグプレス': ['大筋群', '下半身'],
+  'ラットプルダウン': ['大筋群', '背中'], 'ベンチプレス': ['大筋群', '上半身'],
+  'ダンベルカール': ['小筋群'], '腕立て伏せ': ['自重', '上半身'],
+  'プランク': ['体幹', '低負荷'], 'ランニング': ['有酸素'], 'バイク': ['有酸素'],
+};
+
+// この会員の直近セッション(本実装ではカルテから渡す)
+const LAST_SESSION = {
+  date: '7月26日', bodyKg: 54.2, minutes: 60,
+  items: [
+    { name: 'スクワット',       w: 40, r: 10, s: 3 },
+    { name: 'ラットプルダウン', w: 30, r: 12, s: 3 },
+    { name: 'ヒップスラスト',   w: 50, r: 10, s: 3 },
+  ],
+};
+
+function buildNutrition(sess) {
+  const tags = new Set(sess.items.flatMap(i => EX_TAGS[i.name] || []));
+  const volume = sess.items.reduce((n, i) => n + i.w * i.r * i.s, 0);   // 総挙上量(kg・回)
+  const kg = sess.bodyKg;
+  const g = (lo, hi) => `${Math.round(kg * lo)}〜${Math.round(kg * hi)}g`;
+  const big = tags.has('大筋群');
+  const aerobic = tags.has('有酸素');
+  const light = !big && !aerobic;
+  const heavy = big && volume >= 3000;
+  const parts = [...new Set(sess.items.flatMap(i => (EX_TAGS[i.name] || []).filter(t => ['下半身', '背中', '上半身', '体幹'].includes(t))))];
+
+  const out = [];
+  if (light) {
+    out.push({ tm: 'この日は', ttl: '特別な補給は要りません',
+      amt: '', ex: 'いつもの食事と、こまめな水分で十分です。',
+      why: '体幹・低負荷の日は、消費したエネルギーも筋の損傷も小さいためです。' });
+  }
+  if (big) {
+    out.push({ tm: '直後〜45分', ttl: 'たんぱく質', amt: g(0.3, 0.4),
+      ex: '例: 牛乳200ml + ギリシャヨーグルト100g / サラダチキン1本 / プロテイン1杯',
+      why: `${parts.join('・')}の大きな筋肉を使った日は、修復に回るたんぱく質が増えます。` });
+    out.push({ tm: '直後〜2時間', ttl: '炭水化物', amt: g(0.8, 1.0),
+      ex: '例: おにぎり1個(約40g) + バナナ1本(約23g)',
+      why: '使ったエネルギー(筋グリコーゲン)を戻しておくと、翌日の重さの残り方が変わります。' });
+  }
+  if (aerobic) {
+    out.push({ tm: '直後', ttl: '水分と電解質', amt: '500〜800ml',
+      ex: '例: 経口補水液・スポーツドリンク(汗をかいた分だけ)',
+      why: '有酸素運動では汗とともにナトリウムも失われるため、水だけでは戻りきりません。' });
+  }
+  out.push({ tm: '1日を通して', ttl: '水分', amt: `${Math.round(sess.minutes * 8)}〜${Math.round(sess.minutes * 12)}ml を目安に追加`,
+    ex: '喉が渇く前に、コップ1杯ずつ。',
+    why: 'トレーニング中に失った分は、その日のうちに戻すのが基本です。' });
+  if (heavy) {
+    out.push({ tm: '就寝前', ttl: 'たんぱく質(少量)', amt: g(0.2, 0.25),
+      ex: '例: 牛乳コップ1杯 / ヨーグルト',
+      why: '負荷の高い日は、睡眠中の修復に使う分を用意しておくと回復が進みます。' });
+    out.push({ tm: '翌日', ttl: '同じ部位は48時間あける', amt: '',
+      ex: `1日のたんぱく質は合計 ${g(1.2, 1.6)} が目安です。`,
+      why: '筋は休んでいる間に回復します。連日同じ部位を追い込むと逆効果です。' });
+  }
+  return { out, volume, parts };
+}
+
+(function renderNutrition() {
+  const host = document.getElementById('nutriBlock');
+  if (!host) return;
+  const { out, volume, parts } = buildNutrition(LAST_SESSION);
+  host.innerHTML = `
+    <div class="hd"><span class="badge sky">この日の運動に合わせて</span></div>
+    <h3 style="font-size:15px;margin:6px 0 2px;">補給のめやす</h3>
+    <div class="lead">${LAST_SESSION.date}のトレーニング(${parts.join('・')}中心 / 総挙上量 ${volume.toLocaleString('ja-JP')}kg・回 / ${LAST_SESSION.minutes}分)と、体重 ${LAST_SESSION.bodyKg}kg から計算しています。</div>
+    ${out.map(i => `
+      <div class="step2">
+        <div class="tm">${i.tm}</div>
+        <div class="bd">
+          <div class="ttl">${i.ttl}${i.amt ? ` <span class="amt">${i.amt}</span>` : ''}</div>
+          <div class="ex">${i.ex}</div>
+          <div class="why">${i.why}</div>
+        </div>
+      </div>`).join('')}
+    <div class="caution todo">
+      一般的な目安の表示です。持病・アレルギー・服薬がある方、妊娠中の方は、担当トレーナーにご相談ください。
+      <div class="todo-note">誰の監修で出すか(トレーナー / 管理栄養士)、持病・アレルギー情報を会員から預かるか、個別の栄養指導と切り分けた表現にするかが未確定。→ ヒアリングC-4</div>
+    </div>`;
+})();
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 2600);
 }
 </script>
 </body>
