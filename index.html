@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>パーソナルジム 予約・決済・顧客管理(モックアップ)</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ==========================================================================
+     デザインベース: パターンB(ソフト/フレンドリー)— Work/AppDev/デザイン標準.md
+       余白広め・丸み・カードUI・1画面1目的・スマホファースト。
+     色使いの手法(同標準「色使いの手法」):
+       ①自然物の名前で命名 ②彩度を落とした水彩調 ③本文は純黒にしない
+       ④本文300 × 見出し700 のウェイトコントラスト ⑤1色=1意味
+     案件パレット(意味は docs/decisions.md と一致させること):
+       clay=ブランド/主要導線 sage=確定・完了・入金済 ember=変更・要対応
+       rose=キャンセル・未収・警告 sky=情報・トレーナー sand=下地
+     ========================================================================== */
+  :root {
+    --sand: #F6F1E9;
+    --card: #ffffff;
+    --ink: #1B1A18;        /* 純黒にしない(わずかに温かい黒) */
+    --ink-soft: #6E6A63;
+    --line: #E6DFD4;
+    --clay: #C0674A;       --clay-soft: #F7EAE4;  --clay-deep: #A4543A;
+    --sage: #7C9070;       --sage-soft: #EDF1E9;
+    --ember: #D0913F;      --ember-soft: #FAF0DF;
+    --rose: #B8465C;       --rose-soft: #FAE9EC;
+    --sky: #5C87A3;        --sky-soft: #E9F0F4;
+    --radius: 18px;        /* パターンB = 角丸大きめ */
+    --radius-sm: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+    font-weight: 300;                 /* 細い本文 */
+    background: var(--sand); color: var(--ink);
+    font-size: 15px; line-height: 1.7;
+  }
+  /* 水彩調のにじみ(彩度を落とした3色。装飾はここだけ) */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(60% 40% at 8% 0%,   rgba(192,103,74,.10), transparent 70%),
+      radial-gradient(50% 38% at 95% 6%,  rgba(124,144,112,.10), transparent 70%),
+      radial-gradient(60% 45% at 50% 100%, rgba(92,135,163,.08), transparent 70%);
+  }
+  b, strong { font-weight: 700; }
+  h1, h2, h3 { font-weight: 700; line-height: 1.35; }
+  button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; border-radius: 6px; }
+
+  /* ---------- デモ操作バー(納品物には含まれない) ---------- */
+  .demo-bar {
+    position: sticky; top: 0; z-index: 200;
+    background: #fff; border-bottom: 1px solid var(--line);
+    padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .demo-bar::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg,
+      var(--clay) 0 20%, var(--ember) 20% 40%, var(--sage) 40% 60%, var(--sky) 60% 80%, var(--rose) 80% 100%);
+  }
+  .demo-bar .tag {
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    background: var(--clay-soft); color: var(--clay-deep); padding: 3px 12px; border-radius: 20px;
+  }
+  .demo-bar .sep { flex: 1; }
+  .demo-bar button {
+    background: #fff; color: var(--ink-soft); border: 1px solid var(--line);
+    padding: 6px 16px; border-radius: 22px; cursor: pointer; font-size: 13px;
+  }
+  .demo-bar button.active { background: var(--clay); color: #fff; border-color: var(--clay); font-weight: 700; }
+  .demo-bar label { font-size: 12px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+  /* ---------- 未確定ポイントの可視化(商談用。本番UIには残さない) ---------- */
+  .todo { position: relative; }
+  body.show-todo .todo { outline: 2px dashed var(--ember); outline-offset: 4px; border-radius: 10px; }
+  .todo > .todo-note { display: none; }
+  body.show-todo .todo > .todo-note {
+    display: block; margin-top: 8px; font-size: 11.5px; line-height: 1.6;
+    background: var(--ember-soft); color: #8A5D14; border-radius: 10px; padding: 7px 12px;
+  }
+  body.show-todo .todo > .todo-note::before { content: "要決定 "; font-weight: 700; }
+
+  /* ---------- レイアウト ---------- */
+  .app { display: none; }
+  .app.on { display: block; }
+  .phone { max-width: 460px; margin: 0 auto; padding: 18px 16px 110px; }
+  .desk  { max-width: 1040px; margin: 0 auto; padding: 18px 20px 80px; }
+  .view { display: none; }
+  .view.on { display: block; animation: fade .25s ease both; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .head { display: flex; align-items: flex-end; justify-content: space-between; margin: 6px 0 18px; gap: 12px; }
+  .head .kicker { font-size: 11px; letter-spacing: .18em; color: var(--clay-deep); font-weight: 700; }
+  .head h1 { font-size: 25px; letter-spacing: -.01em; }
+  .head .who { font-size: 12px; color: var(--ink-soft); text-align: right; white-space: nowrap; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px; margin-bottom: 16px; box-shadow: 0 3px 14px rgba(27,26,24,.045);
+  }
+  .card.flat { box-shadow: none; }
+  .card h2 { font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .card h2 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--clay); }
+  .muted { color: var(--ink-soft); font-size: 12.5px; }
+  .row { display: flex; align-items: center; gap: 12px; }
+  .row.between { justify-content: space-between; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 720px) { .grid3 { grid-template-columns: 1fr; } }
+
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 10px; border-radius: 12px; }
+  .badge.sage  { background: var(--sage-soft);  color: #566349; }
+  .badge.ember { background: var(--ember-soft); color: #8A5D14; }
+  .badge.rose  { background: var(--rose-soft);  color: var(--rose); }
+  .badge.sky   { background: var(--sky-soft);   color: #3E6580; }
+  .badge.clay  { background: var(--clay-soft);  color: var(--clay-deep); }
+
+  /* パターンB = 大きめのボタン・タップターゲット44px以上 */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 48px; padding: 12px 24px; border-radius: 26px; border: 1px solid transparent;
+    background: var(--clay); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer;
+    transition: transform .18s cubic-bezier(.2,.7,.3,1), background .18s ease;
+  }
+  .btn:hover { background: var(--clay-deep); }
+  .btn:active { transform: scale(.98); }
+  .btn[disabled] { background: #DED7CB; color: #9A948B; cursor: not-allowed; }
+  .btn.ghost { background: #fff; color: var(--ink); border-color: var(--line); font-weight: 500; }
+  .btn.ghost:hover { background: #FBF8F3; }
+  .btn.danger { background: #fff; color: var(--rose); border-color: var(--rose); }
+  .btn.sm { min-height: 38px; padding: 8px 16px; font-size: 13px; border-radius: 20px; }
+  .btn.block { width: 100%; }
+
+  /* ---------- 会員: 下部ナビ ---------- */
+  .tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 150;
+    background: rgba(255,255,255,.94); backdrop-filter: blur(8px);
+    border-top: 1px solid var(--line); display: flex; justify-content: center;
+  }
+  .tabbar .inner { display: flex; width: 100%; max-width: 460px; }
+  .tabbar button {
+    flex: 1; background: none; border: none; cursor: pointer; padding: 10px 0 14px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 10.5px; color: var(--ink-soft); min-height: 56px;
+  }
+  .tabbar button .ic { font-size: 19px; line-height: 1; }
+  .tabbar button.on { color: var(--clay); font-weight: 700; }
+
+  /* ---------- 会員: 次回予約 ---------- */
+  .next {
+    background: linear-gradient(160deg, #fff 0%, var(--clay-soft) 130%);
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+  }
+  .next .when { font-size: 26px; font-weight: 700; letter-spacing: -.01em; }
+  .next .with { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+  .next .acts { display: flex; gap: 10px; margin-top: 16px; }
+
+  .meter { height: 8px; background: #EFE9DF; border-radius: 6px; overflow: hidden; margin: 8px 0 6px; }
+  .meter > i { display: block; height: 100%; background: var(--sage); }
+
+  .strip {
+    display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--line);
+    border-radius: 24px; padding: 10px 16px; margin-bottom: 16px; font-size: 12.5px; cursor: pointer;
+  }
+  .strip .dot { color: var(--rose); font-size: 9px; }
+  .strip .txt { flex: 1; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---------- 選択チップ ---------- */
+  .chips { display: flex; gap: 10px; flex-wrap: wrap; }
+  .chip {
+    background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 10px 16px;
+    cursor: pointer; font-size: 14px; min-height: 44px; display: flex; align-items: center; gap: 8px;
+  }
+  .chip.on { border-color: var(--clay); background: var(--clay-soft); font-weight: 700; color: var(--clay-deep); }
+  .chip .sub { font-size: 11px; color: var(--ink-soft); font-weight: 400; }
+  .chip.on .sub { color: var(--clay-deep); }
+
+  .dates { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 8px; }
+  .date {
+    flex: 0 0 auto; width: 62px; text-align: center; background: #fff; border: 1px solid var(--line);
+    border-radius: 16px; padding: 10px 0; cursor: pointer;
+  }
+  .date .dow { font-size: 10.5px; color: var(--ink-soft); }
+  .date .d { font-size: 20px; font-weight: 700; line-height: 1.2; }
+  .date .n { font-size: 10px; color: var(--sage); font-weight: 500; }
+  .date.on { border-color: var(--clay); background: var(--clay-soft); }
+  .date.full { opacity: .45; cursor: not-allowed; }
+  .date.full .n { color: var(--ink-soft); }
+  .date.sat .dow { color: var(--sky); }
+
+  .slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .slot {
+    background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 6px;
+    text-align: center; cursor: pointer; min-height: 62px;
+  }
+  .slot .t { font-weight: 700; font-size: 15px; }
+  .slot .s { font-size: 10.5px; color: var(--sage); }
+  .slot.few .s { color: var(--ember); }
+  .slot.on { border-color: var(--clay); background: var(--clay-soft); }
+  .slot.x { opacity: .4; cursor: not-allowed; }
+  .slot.x .s { color: var(--ink-soft); }
+
+  /* ---------- リスト行 ---------- */
+  .item {
+    display: flex; gap: 12px; align-items: center; padding: 14px 4px;
+    border-bottom: 1px solid var(--line); cursor: pointer;
+  }
+  .item:last-child { border-bottom: none; }
+  .item .lead { width: 52px; text-align: center; flex: 0 0 auto; }
+  .item .lead .m { font-size: 10.5px; color: var(--ink-soft); }
+  .item .lead .d { font-size: 19px; font-weight: 700; line-height: 1.15; }
+  .item .main { flex: 1; min-width: 0; }
+  .item .main .t { font-weight: 500; font-size: 14px; }
+  .item .main .s { font-size: 12px; color: var(--ink-soft); }
+  .item .end { text-align: right; white-space: nowrap; font-size: 12.5px; }
+  .item.off { opacity: .55; }
+  .item.off .main .t { text-decoration: line-through; }
+
+  /* ---------- ボトムシート ---------- */
+  .veil { position: fixed; inset: 0; background: rgba(27,26,24,.4); z-index: 300; display: none; }
+  .veil.on { display: block; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 310; background: #fff;
+    border-radius: 24px 24px 0 0; padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
+    max-width: 460px; margin: 0 auto; transform: translateY(102%);
+    transition: transform .28s cubic-bezier(.2,.8,.25,1); max-height: 86vh; overflow-y: auto;
+  }
+  .sheet.on { transform: none; }
+  .sheet .grip { width: 40px; height: 4px; background: var(--line); border-radius: 4px; margin: -6px auto 16px; }
+  .sheet h3 { font-size: 18px; margin-bottom: 6px; }
+  .kv { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .kv:last-of-type { border-bottom: none; }
+  .kv .k { color: var(--ink-soft); font-size: 13px; }
+  .kv .v { font-weight: 500; text-align: right; }
+  .policy { background: var(--sand); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 12.5px; color: var(--ink-soft); margin: 12px 0; }
+
+  /* ---------- 管理: タブ ---------- */
+  .toptabs { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+  .toptabs button {
+    background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer;
+    padding: 10px 14px; font-size: 14px; color: var(--ink-soft); min-height: 44px;
+  }
+  .toptabs button.on { color: var(--clay-deep); border-bottom-color: var(--clay); font-weight: 700; }
+
+  .stat { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; }
+  .stat .l { font-size: 11.5px; color: var(--ink-soft); }
+  .stat .n { font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+  .stat .n small { font-size: 13px; font-weight: 500; margin-left: 2px; }
+  .stat .sub { font-size: 11.5px; color: var(--ink-soft); }
+
+  /* タイムライン */
+  .tl { position: relative; padding-left: 66px; }
+  .tl .ln { position: absolute; left: 56px; top: 6px; bottom: 6px; width: 1px; background: var(--line); }
+  .tlrow { position: relative; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .tlrow:last-child { border-bottom: none; }
+  .tlrow .hh { position: absolute; left: -66px; top: 12px; width: 48px; text-align: right; font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+  .tlrow .pin { position: absolute; left: -11px; top: 18px; width: 9px; height: 9px; border-radius: 50%; background: var(--clay); }
+  .tlrow.done .pin { background: var(--sage); }
+  .tlrow.empty .pin { background: var(--line); }
+  .tlcard { background: #fff; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; gap: 12px; align-items: center; }
+  .tlcard .who { flex: 1; }
+  .tlcard .who .n { font-weight: 500; }
+  .tlcard .who .s { font-size: 12px; color: var(--ink-soft); }
+  .tlrow.empty .tlcard { background: transparent; border-style: dashed; color: var(--ink-soft); font-size: 13px; }
+
+  /* 週カレンダー */
+  .wk { display: grid; grid-template-columns: 54px repeat(7, 1fr); gap: 4px; font-size: 12px; min-width: 720px; }
+  .wk .hd { text-align: center; font-weight: 700; padding: 6px 0; font-size: 12px; }
+  .wk .hd small { display: block; font-weight: 400; color: var(--ink-soft); font-size: 10.5px; }
+  .wk .hr { display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; color: var(--ink-soft); }
+  .cell { border: 1px solid var(--line); border-radius: 8px; background: #fff; min-height: 42px; padding: 5px 6px; cursor: pointer; line-height: 1.35; }
+  .cell.booked { background: var(--clay-soft); border-color: #E7C9BC; }
+  .cell.booked .nm { font-weight: 500; font-size: 11.5px; }
+  .cell.booked .tr { font-size: 10px; color: var(--clay-deep); }
+  .cell.closed { background: #F2EEE7; border-style: dashed; color: #B0A99E; text-align: center; font-size: 10.5px; }
+  .cell.open { color: var(--sage); text-align: center; font-size: 10.5px; }
+  .scrollx { overflow-x: auto; padding-bottom: 6px; }
+
+  /* テーブル(管理: 密度はAに寄せる) */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { text-align: left; font-size: 11.5px; color: var(--ink-soft); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  td { padding: 11px 10px; border-bottom: 1px solid var(--line); }
+  tr.clickable { cursor: pointer; }
+  tr.clickable:hover td { background: #FBF8F3; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .search { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .search input, .search select {
+    border: 1px solid var(--line); border-radius: 22px; padding: 10px 16px; background: #fff; min-height: 44px; font-weight: 300;
+  }
+  .search input { flex: 1; min-width: 180px; }
+
+  /* 会員詳細ドロワー */
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(520px, 100%); background: #fff; z-index: 310;
+    box-shadow: -8px 0 30px rgba(27,26,24,.12); transform: translateX(102%);
+    transition: transform .28s cubic-bezier(.2,.8,.25,1); overflow-y: auto; padding: 22px 22px 60px;
+  }
+  .drawer.on { transform: none; }
+  .drawer .x { position: absolute; top: 16px; right: 18px; background: none; border: none; font-size: 22px; cursor: pointer; color: var(--ink-soft); }
+  .seg { display: flex; gap: 6px; margin: 16px 0; flex-wrap: wrap; }
+  .seg button { border: 1px solid var(--line); background: #fff; border-radius: 18px; padding: 7px 14px; font-size: 12.5px; cursor: pointer; min-height: 38px; }
+  .seg button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .pane { display: none; }
+  .pane.on { display: block; }
+
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; }
+  .field input, .field textarea, .field select {
+    width: 100%; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; background: #fff; font-weight: 300;
+  }
+  .field textarea { min-height: 78px; resize: vertical; }
+
+  .note { background: var(--sky-soft); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 12.5px; color: #3E6580; }
+  .guide h3 { font-size: 15px; margin: 18px 0 6px; }
+  .guide ol, .guide ul { margin-left: 1.2em; font-size: 14px; }
+  .guide li { margin-bottom: 5px; }
+  .foot { text-align: center; font-size: 11px; color: var(--ink-soft); padding: 24px 0 8px; }
+</style>
+</head>
+<body>
+
+<!-- ========================= デモ操作バー ========================= -->
+<div class="demo-bar">
+  <span class="tag">MOCKUP</span>
+  <button id="btnMember" class="active" onclick="switchApp('member')">会員(スマホ)</button>
+  <button id="btnAdmin" onclick="switchApp('admin')">管理(トレーナー)</button>
+  <span class="sep"></span>
+  <label><input type="checkbox" id="todoToggle" onchange="document.body.classList.toggle('show-todo', this.checked)"> 未確定ポイントを表示</label>
+</div>
+
+<!-- ============================================================== -->
+<!-- 会員アプリ                                                      -->
+<!-- ============================================================== -->
+<div id="app-member" class="app on">
+<div class="phone">
+
+  <!-- ---------- ホーム ---------- -->
+  <section class="view on" id="m-home">
+    <div class="head">
+      <div>
+        <div class="kicker">STUDIO DEMO</div>
+        <h1>こんにちは、彩さん</h1>
+      </div>
+      <div class="who">会員番号 0142<br>月8回プラン</div>
+    </div>
+
+    <div class="strip" onclick="goM('m-home')">
+      <span class="dot">●</span>
+      <span class="txt">8/12(水)は臨時休業です</span>
+      <span class="muted">お知らせ</span>
+    </div>
+
+    <div class="next">
+      <div class="badge clay">次回のご予約</div>
+      <div class="when" style="margin-top:8px;">8月2日(土)10:00</div>
+      <div class="with">担当: 佐々木トレーナー / 60分 / スタジオA</div>
+      <div class="acts">
+        <button class="btn sm ghost" onclick="openSheet('sheetChange')">日時を変更</button>
+        <button class="btn sm ghost" onclick="openSheet('sheetCancel')">キャンセル</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>今月の消化状況</h2>
+      <div class="row between">
+        <div><strong style="font-size:22px;">3</strong> <span class="muted">/ 8回</span></div>
+        <span class="badge sage">残り5回</span>
+      </div>
+      <div class="meter"><i style="width:37.5%"></i></div>
+      <div class="muted">8月31日まで有効。翌月への繰越はありません。</div>
+      <div class="todo" style="margin-top:10px;">
+        <div class="muted">回数券(10回)残 <strong>2回</strong> ・ 有効期限 2026-10-15</div>
+        <div class="todo-note">回数券の有効期限切れの扱い(失効/延長/返金)が未確定。→ requirements.md ヒアリングA-2</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <button class="btn block" onclick="goM('m-book')">予約する</button>
+      <button class="btn ghost block" onclick="goM('m-record')">前回の記録</button>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2><span class="dot"></span>お知らせ</h2>
+      <div class="item"><div class="main"><div class="t">8/12(水)臨時休業のお知らせ</div><div class="s">7月25日</div></div></div>
+      <div class="item"><div class="main"><div class="t">夏季の営業時間について</div><div class="s">7月18日</div></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- 予約する ---------- -->
+  <section class="view" id="m-book">
+    <div class="head"><div><div class="kicker">RESERVE</div><h1>予約する</h1></div></div>
+
+    <div class="card">
+      <h2><span class="dot"></span>1. トレーナーを選ぶ</h2>
+      <div class="chips" id="trainerChips">
+        <div class="chip on" data-tr="佐々木" onclick="pick(this,'trainerChips','tr')">佐々木 健<span class="sub">担当</span></div>
+        <div class="chip" data-tr="三浦" onclick="pick(this,'trainerChips','tr')">三浦 悠</div>
+        <div class="chip" data-tr="指名なし" onclick="pick(this,'trainerChips','tr')">指名なし<span class="sub">空きが多い</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>2. 日付を選ぶ</h2>
+      <div class="dates" id="dateChips">
+        <div class="date" data-d="7/28(月)" onclick="pick(this,'dateChips','date')"><div class="dow">月</div><div class="d">28</div><div class="n">空3</div></div>
+        <div class="date on" data-d="7/29(火)" onclick="pick(this,'dateChips','date')"><div class="dow">火</div><div class="d">29</div><div class="n">空5</div></div>
+        <div class="date" data-d="7/30(水)" onclick="pick(this,'dateChips','date')"><div class="dow">水</div><div class="d">30</div><div class="n">空1</div></div>
+        <div class="date full" data-d="7/31(木)"><div class="dow">木</div><div class="d">31</div><div class="n">満</div></div>
+        <div class="date" data-d="8/1(金)" onclick="pick(this,'dateChips','date')"><div class="dow">金</div><div class="d">1</div><div class="n">空4</div></div>
+        <div class="date sat" data-d="8/2(土)" onclick="pick(this,'dateChips','date')"><div class="dow">土</div><div class="d">2</div><div class="n">空2</div></div>
+        <div class="date" data-d="8/4(月)" onclick="pick(this,'dateChips','date')"><div class="dow">月</div><div class="d">4</div><div class="n">空6</div></div>
+      </div>
+      <div class="todo">
+        <div class="muted">予約できるのは本日から30日先までです。</div>
+        <div class="todo-note">予約可能期間・1日の上限・変更回数の上限が未確定。→ ヒアリングB-7</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>3. 時間を選ぶ</h2>
+      <div class="slots" id="slotChips">
+        <div class="slot" data-t="09:00" onclick="pick(this,'slotChips','time')"><div class="t">09:00</div><div class="s">空き</div></div>
+        <div class="slot x"><div class="t">10:00</div><div class="s">×</div></div>
+        <div class="slot few" data-t="11:00" onclick="pick(this,'slotChips','time')"><div class="t">11:00</div><div class="s">残1</div></div>
+        <div class="slot" data-t="14:00" onclick="pick(this,'slotChips','time')"><div class="t">14:00</div><div class="s">空き</div></div>
+        <div class="slot" data-t="15:00" onclick="pick(this,'slotChips','time')"><div class="t">15:00</div><div class="s">空き</div></div>
+        <div class="slot x"><div class="t">16:00</div><div class="s">×</div></div>
+        <div class="slot" data-t="18:00" onclick="pick(this,'slotChips','time')"><div class="t">18:00</div><div class="s">空き</div></div>
+        <div class="slot few" data-t="19:00" onclick="pick(this,'slotChips','time')"><div class="t">19:00</div><div class="s">残1</div></div>
+        <div class="slot x"><div class="t">20:00</div><div class="s">×</div></div>
+      </div>
+    </div>
+
+    <div class="card todo">
+      <h2><span class="dot"></span>お支払い方法</h2>
+      <div class="chips" id="payChips">
+        <div class="chip on" data-p="月8回プランの消化(残5回)" onclick="pick(this,'payChips','pay')">プランを消化<span class="sub">残5回</span></div>
+        <div class="chip" data-p="回数券の消化(残2回)" onclick="pick(this,'payChips','pay')">回数券を消化<span class="sub">残2回</span></div>
+        <div class="chip" data-p="都度払い ¥8,800(カード)" onclick="pick(this,'payChips','pay')">都度払い<span class="sub">¥8,800</span></div>
+      </div>
+      <div class="todo-note">プラン超過分の自動都度課金の可否、現金・PayPay併用の有無が未確定。→ ヒアリングA-3</div>
+    </div>
+
+    <button class="btn block" id="bookBtn" onclick="openSheet('sheetConfirm')">この内容で予約する</button>
+    <div class="muted" style="text-align:center;margin-top:10px;" id="bookSummary">佐々木 / 7/29(火) / 時間を選んでください</div>
+  </section>
+
+  <!-- ---------- 予約一覧 ---------- -->
+  <section class="view" id="m-list">
+    <div class="head"><div><div class="kicker">RESERVATIONS</div><h1>予約の確認</h1></div></div>
+
+    <div class="card">
+      <h2><span class="dot"></span>これからの予約</h2>
+      <div class="item" id="resA" onclick="openSheet('sheetCancel')">
+        <div class="lead"><div class="m">8月</div><div class="d">2</div></div>
+        <div class="main"><div class="t">10:00 - 11:00 / 佐々木</div><div class="s">プラン消化</div></div>
+        <div class="end"><span class="badge sage">確定</span></div>
+      </div>
+      <div class="item">
+        <div class="lead"><div class="m">8月</div><div class="d">6</div></div>
+        <div class="main"><div class="t">19:00 - 20:00 / 三浦</div><div class="s">プラン消化</div></div>
+        <div class="end"><span class="badge sage">確定</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>過去の予約</h2>
+      <div class="item"><div class="lead"><div class="m">7月</div><div class="d">26</div></div>
+        <div class="main"><div class="t">10:00 / 佐々木</div><div class="s">記録あり</div></div><div class="end"><span class="badge sage">実施済</span></div></div>
+      <div class="item"><div class="lead"><div class="m">7月</div><div class="d">19</div></div>
+        <div class="main"><div class="t">10:00 / 佐々木</div><div class="s">記録あり</div></div><div class="end"><span class="badge sage">実施済</span></div></div>
+      <div class="item off"><div class="lead"><div class="m">7月</div><div class="d">12</div></div>
+        <div class="main"><div class="t">10:00 / 佐々木</div><div class="s">前日にキャンセル(消化なし)</div></div><div class="end"><span class="badge rose">キャンセル</span></div></div>
+    </div>
+
+    <div class="card todo flat">
+      <h2><span class="dot"></span>キャンセルについて</h2>
+      <div class="muted">前日20:00までのキャンセルは無料です。以降のキャンセル・無断欠席は1回消化となります。</div>
+      <div class="todo-note">この数値(前日20時 / 1回消化)は仮置き。実際の運用ルールを確認して確定する。→ ヒアリングA-1(最優先)</div>
+    </div>
+  </section>
+
+  <!-- ---------- 支払い ---------- -->
+  <section class="view" id="m-pay">
+    <div class="head"><div><div class="kicker">PAYMENT</div><h1>お支払い</h1></div></div>
+
+    <div class="card">
+      <h2><span class="dot"></span>ご契約中のプラン</h2>
+      <div class="kv"><span class="k">プラン</span><span class="v">月8回プラン</span></div>
+      <div class="kv"><span class="k">月額</span><span class="v">¥52,800(税込)</span></div>
+      <div class="kv"><span class="k">次回請求日</span><span class="v">2026-08-01</span></div>
+      <div class="kv"><span class="k">支払い方法</span><span class="v">VISA •••• 4242</span></div>
+      <div class="row" style="gap:10px;margin-top:14px;">
+        <button class="btn sm ghost">プランを変更</button>
+        <button class="btn sm ghost">カードを変更</button>
+        <button class="btn sm ghost">休会を申請</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>回数券を購入</h2>
+      <div class="grid2">
+        <div class="chip" style="flex-direction:column;align-items:flex-start;padding:14px;">
+          <strong>5回券</strong><span class="sub">¥41,800 / 3か月有効</span>
+        </div>
+        <div class="chip" style="flex-direction:column;align-items:flex-start;padding:14px;">
+          <strong>10回券</strong><span class="sub">¥79,200 / 6か月有効</span>
+        </div>
+      </div>
+      <button class="btn block" style="margin-top:14px;">購入手続きへ</button>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>お支払い履歴</h2>
+      <div class="item"><div class="main"><div class="t">月8回プラン 7月分</div><div class="s">2026-07-01 / VISA ••4242</div></div><div class="end">¥52,800<br><span class="badge sage">完了</span></div></div>
+      <div class="item"><div class="main"><div class="t">10回券</div><div class="s">2026-04-15 / VISA ••4242</div></div><div class="end">¥79,200<br><span class="badge sage">完了</span></div></div>
+      <div class="item"><div class="main"><div class="t">体組成測定(オプション)</div><div class="s">2026-06-20 / 現地払い</div></div><div class="end">¥1,100<br><span class="badge sage">完了</span></div></div>
+      <div class="muted" style="margin-top:10px;">領収書は各明細から発行できます。</div>
+    </div>
+  </section>
+
+  <!-- ---------- カルテ ---------- -->
+  <section class="view" id="m-record">
+    <div class="head"><div><div class="kicker">RECORD</div><h1>トレーニング記録</h1></div></div>
+
+    <div class="card">
+      <h2><span class="dot"></span>からだの変化</h2>
+      <div class="grid3" style="gap:10px;">
+        <div class="stat"><div class="l">体重</div><div class="n">54.2<small>kg</small></div><div class="sub">前回 -0.4</div></div>
+        <div class="stat"><div class="l">体脂肪率</div><div class="n">24.1<small>%</small></div><div class="sub">前回 -0.6</div></div>
+        <div class="stat"><div class="l">筋肉量</div><div class="n">38.9<small>kg</small></div><div class="sub">前回 +0.2</div></div>
+      </div>
+      <div class="muted" style="margin-top:12px;">測定日: 2026-07-26(佐々木トレーナー)</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>7月26日のセッション</h2>
+      <table>
+        <thead><tr><th>種目</th><th class="num">重量</th><th class="num">回数×セット</th></tr></thead>
+        <tbody>
+          <tr><td>スクワット</td><td class="num">40kg</td><td class="num">10 × 3</td></tr>
+          <tr><td>ラットプルダウン</td><td class="num">30kg</td><td class="num">12 × 3</td></tr>
+          <tr><td>ヒップスラスト</td><td class="num">50kg</td><td class="num">10 × 3</td></tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:14px;">
+        <strong>トレーナーから</strong><br>
+        フォームが安定してきました。次回はスクワットを45kgに上げてみましょう。自宅では水分をこまめに。
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>これまでの記録</h2>
+      <div class="item"><div class="main"><div class="t">7月19日</div><div class="s">下半身 / スクワット 40kg</div></div><div class="end">→</div></div>
+      <div class="item"><div class="main"><div class="t">7月12日</div><div class="s">上半身 / ベンチプレス 25kg</div></div><div class="end">→</div></div>
+      <div class="item"><div class="main"><div class="t">7月5日</div><div class="s">全身 / 体組成測定あり</div></div><div class="end">→</div></div>
+    </div>
+  </section>
+
+  <!-- ---------- 使い方ガイド ---------- -->
+  <section class="view" id="m-guide">
+    <div class="head"><div><div class="kicker">GUIDE</div><h1>使い方ガイド</h1></div></div>
+    <div class="card guide">
+      <h3>予約する</h3>
+      <ol>
+        <li>下の「予約」を押します。</li>
+        <li>トレーナー → 日付 → 時間の順に選びます(選ぶたびに空き状況が更新されます)。</li>
+        <li>お支払い方法を確認し、「この内容で予約する」を押します。</li>
+        <li>確認画面で内容を見て「予約を確定する」を押すと完了です。登録のメールアドレスに確認メールが届きます。</li>
+      </ol>
+      <h3>変更・キャンセル</h3>
+      <ul>
+        <li>「予約」タブの一覧から該当の予約を選びます。</li>
+        <li>前日20:00まではアプリで無料キャンセルできます(※ルールは確定前)。</li>
+        <li>それ以降の変更はスタジオへお電話ください。</li>
+      </ul>
+      <h3>お支払い</h3>
+      <ul>
+        <li>月会費は登録カードから毎月1日に自動で引き落とされます。</li>
+        <li>回数券は購入時に一括でお支払いいただきます。</li>
+        <li>領収書は「支払い」タブの履歴から発行できます。</li>
+      </ul>
+      <h3>記録を見る</h3>
+      <ul>
+        <li>「記録」タブで、体組成の推移とセッション内容を確認できます。</li>
+        <li>トレーナーからのコメントもここに表示されます。</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="foot">モックアップ / パーソナルジム 予約・決済・顧客管理<br>デザインベース: パターンB(ソフト/フレンドリー)</div>
+</div>
+
+<nav class="tabbar"><div class="inner">
+  <button class="on" data-v="m-home" onclick="goM('m-home')"><span class="ic">🏠</span>ホーム</button>
+  <button data-v="m-book" onclick="goM('m-book')"><span class="ic">📅</span>予約する</button>
+  <button data-v="m-list" onclick="goM('m-list')"><span class="ic">📋</span>予約</button>
+  <button data-v="m-pay" onclick="goM('m-pay')"><span class="ic">💳</span>支払い</button>
+  <button data-v="m-record" onclick="goM('m-record')"><span class="ic">📈</span>記録</button>
+  <button data-v="m-guide" onclick="goM('m-guide')"><span class="ic">❓</span>使い方</button>
+</div></nav>
+</div>
+
+<!-- ============================================================== -->
+<!-- 管理アプリ                                                      -->
+<!-- ============================================================== -->
+<div id="app-admin" class="app">
+<div class="desk">
+  <div class="head">
+    <div><div class="kicker">STUDIO DEMO / ADMIN</div><h1>管理画面</h1></div>
+    <div class="who">佐々木 健(トレーナー)<br>2026-07-27(月)</div>
+  </div>
+
+  <div class="toptabs">
+    <button class="on" data-v="a-today" onclick="goA('a-today')">本日</button>
+    <button data-v="a-cal" onclick="goA('a-cal')">予約管理</button>
+    <button data-v="a-members" onclick="goA('a-members')">会員</button>
+    <button data-v="a-sales" onclick="goA('a-sales')">売上・決済</button>
+    <button data-v="a-settings" onclick="goA('a-settings')">設定</button>
+    <button data-v="a-manual" onclick="goA('a-manual')">管理マニュアル</button>
+  </div>
+
+  <!-- ---------- 本日 ---------- -->
+  <section class="view on" id="a-today">
+    <div class="grid3" style="margin-bottom:18px;">
+      <div class="stat"><div class="l">本日の予約</div><div class="n">6<small>件</small></div><div class="sub">実施済 2 / 残り 4</div></div>
+      <div class="stat"><div class="l">本日の売上(見込)</div><div class="n">¥26,400</div><div class="sub">都度払い 3件</div></div>
+      <div class="stat"><div class="l">未収</div><div class="n" style="color:var(--rose)">2<small>件</small></div><div class="sub">¥17,600 — 要対応</div></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>本日のスケジュール</h2>
+      <div class="tl"><div class="ln"></div>
+        <div class="tlrow done"><div class="hh">09:00</div><div class="pin"></div>
+          <div class="tlcard"><div class="who"><div class="n">山口 彩 <span class="badge sky">継続12か月</span></div><div class="s">月8回プラン消化 / 60分</div></div>
+            <span class="badge sage">実施済</span><button class="btn sm ghost" onclick="openDrawer()">カルテ</button></div></div>
+        <div class="tlrow done"><div class="hh">10:00</div><div class="pin"></div>
+          <div class="tlcard"><div class="who"><div class="n">大西 亮太</div><div class="s">回数券消化(残1) / 60分</div></div>
+            <span class="badge sage">実施済</span><button class="btn sm ghost" onclick="openDrawer()">カルテ</button></div></div>
+        <div class="tlrow empty"><div class="hh">11:00</div><div class="pin"></div><div class="tlcard">空き枠(公開中)</div></div>
+        <div class="tlrow"><div class="hh">14:00</div><div class="pin"></div>
+          <div class="tlcard"><div class="who"><div class="n">桜井 みなみ <span class="badge ember">当日変更</span></div><div class="s">15:00 → 14:00 に変更(本人希望)/ 60分</div></div>
+            <button class="btn sm" onclick="markDone(this)">実施を記録</button></div></div>
+        <div class="tlrow"><div class="hh">16:00</div><div class="pin"></div>
+          <div class="tlcard"><div class="who"><div class="n">田島 智之 <span class="badge rose">未収 ¥8,800</span></div><div class="s">都度払い / 前回分が未決済</div></div>
+            <button class="btn sm" onclick="markDone(this)">実施を記録</button></div></div>
+        <div class="tlrow"><div class="hh">18:00</div><div class="pin"></div>
+          <div class="tlcard"><div class="who"><div class="n">中原 さくら <span class="badge clay">体験</span></div><div class="s">体験セッション / 30分 / 初回</div></div>
+            <button class="btn sm" onclick="markDone(this)">実施を記録</button></div></div>
+        <div class="tlrow"><div class="hh">19:00</div><div class="pin"></div>
+          <div class="tlcard"><div class="who"><div class="n">久保 直人</div><div class="s">月4回プラン消化 / 60分</div></div>
+            <button class="btn sm" onclick="markDone(this)">実施を記録</button></div></div>
+      </div>
+      <div class="todo" style="margin-top:14px;">
+        <div class="muted">「実施を記録」で1回消化+カルテ入力に進みます。</div>
+        <div class="todo-note">回数を減らすタイミング(予約時か実施時か)が未確定。無断欠席の記録方法も要決定。→ spec.md「先に数値で確定させるべき計算式」</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- 予約管理 ---------- -->
+  <section class="view" id="a-cal">
+    <div class="row between" style="margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+      <div class="row" style="gap:8px;">
+        <button class="btn sm ghost">◀ 前週</button>
+        <strong>2026年7月28日 - 8月3日</strong>
+        <button class="btn sm ghost">次週 ▶</button>
+      </div>
+      <div class="row" style="gap:8px;">
+        <select class="btn sm ghost" style="padding:8px 14px;"><option>佐々木 健</option><option>三浦 悠</option><option>全トレーナー</option></select>
+        <button class="btn sm" onclick="openSheet('sheetProxy')">代理で予約を入れる</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="scrollx">
+      <div class="wk">
+        <div></div>
+        <div class="hd">月<small>7/28</small></div><div class="hd">火<small>29</small></div><div class="hd">水<small>30</small></div>
+        <div class="hd">木<small>31</small></div><div class="hd">金<small>8/1</small></div><div class="hd">土<small>2</small></div><div class="hd">日<small>3</small></div>
+
+        <div class="hr">09:00</div>
+        <div class="cell booked"><div class="nm">山口 彩</div><div class="tr">プラン</div></div>
+        <div class="cell open">空き</div>
+        <div class="cell booked"><div class="nm">久保 直人</div><div class="tr">プラン</div></div>
+        <div class="cell booked"><div class="nm">大西 亮太</div><div class="tr">回数券</div></div>
+        <div class="cell open">空き</div>
+        <div class="cell booked"><div class="nm">山口 彩</div><div class="tr">プラン</div></div>
+        <div class="cell closed">定休</div>
+
+        <div class="hr">10:00</div>
+        <div class="cell booked"><div class="nm">大西 亮太</div><div class="tr">回数券</div></div>
+        <div class="cell open">空き</div>
+        <div class="cell booked"><div class="nm">桜井 みなみ</div><div class="tr">都度</div></div>
+        <div class="cell booked"><div class="nm">中原 さくら</div><div class="tr">体験</div></div>
+        <div class="cell open">空き</div>
+        <div class="cell booked"><div class="nm">田島 智之</div><div class="tr">都度</div></div>
+        <div class="cell closed">定休</div>
+
+        <div class="hr">11:00</div>
+        <div class="cell open">空き</div><div class="cell open">空き</div><div class="cell open">空き</div>
+        <div class="cell booked"><div class="nm">久保 直人</div><div class="tr">プラン</div></div>
+        <div class="cell open">空き</div><div class="cell open">空き</div><div class="cell closed">定休</div>
+
+        <div class="hr">12-13</div>
+        <div class="cell closed">休憩</div><div class="cell closed">休憩</div><div class="cell closed">休憩</div>
+        <div class="cell closed">休憩</div><div class="cell closed">休憩</div><div class="cell closed">休憩</div><div class="cell closed">定休</div>
+
+        <div class="hr">14:00</div>
+        <div class="cell booked"><div class="nm">桜井 みなみ</div><div class="tr">都度</div></div>
+        <div class="cell open">空き</div>
+        <div class="cell open">空き</div>
+        <div class="cell booked"><div class="nm">山口 彩</div><div class="tr">プラン</div></div>
+        <div class="cell open">空き</div><div class="cell open">空き</div><div class="cell closed">定休</div>
+
+        <div class="hr">16:00</div>
+        <div class="cell booked"><div class="nm">田島 智之</div><div class="tr">都度</div></div>
+        <div class="cell closed">非公開</div>
+        <div class="cell open">空き</div>
+        <div class="cell open">空き</div>
+        <div class="cell booked"><div class="nm">大西 亮太</div><div class="tr">回数券</div></div>
+        <div class="cell open">空き</div><div class="cell closed">定休</div>
+
+        <div class="hr">18:00</div>
+        <div class="cell booked"><div class="nm">中原 さくら</div><div class="tr">体験</div></div>
+        <div class="cell booked"><div class="nm">久保 直人</div><div class="tr">プラン</div></div>
+        <div class="cell open">空き</div>
+        <div class="cell open">空き</div>
+        <div class="cell booked"><div class="nm">桜井 みなみ</div><div class="tr">都度</div></div>
+        <div class="cell closed">非公開</div><div class="cell closed">定休</div>
+
+        <div class="hr">19:00</div>
+        <div class="cell booked"><div class="nm">久保 直人</div><div class="tr">プラン</div></div>
+        <div class="cell open">空き</div>
+        <div class="cell booked"><div class="nm">山口 彩</div><div class="tr">プラン</div></div>
+        <div class="cell open">空き</div>
+        <div class="cell open">空き</div>
+        <div class="cell closed">非公開</div><div class="cell closed">定休</div>
+      </div>
+      </div>
+      <div class="row" style="gap:14px;margin-top:14px;flex-wrap:wrap;">
+        <span class="muted">セルをクリック: 予約詳細 / 空き枠を非公開にする</span>
+        <span class="badge clay">予約済</span><span class="badge sage">空き(公開)</span><span class="badge ember">非公開・休憩</span>
+      </div>
+      <div class="todo" style="margin-top:12px;">
+        <div class="muted">枠は営業時間から自動生成し、埋まった枠と非公開枠を除いて会員に見せています。</div>
+        <div class="todo-note">枠の作り方(自動生成 or トレーナーが空き時間を開ける)が未確定。→ ヒアリングB-6</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- 会員 ---------- -->
+  <section class="view" id="a-members">
+    <div class="search">
+      <input placeholder="氏名・かな・電話番号で検索">
+      <select><option>在籍中</option><option>休会中</option><option>退会</option><option>すべて</option></select>
+      <select><option>全プラン</option><option>月8回</option><option>月4回</option><option>回数券のみ</option></select>
+      <button class="btn sm">会員を登録</button>
+    </div>
+
+    <div class="card" style="padding:8px 10px;">
+      <table>
+        <thead><tr>
+          <th>会員</th><th>プラン</th><th class="num">残回数</th><th>最終来店</th><th>次回予約</th><th>決済</th><th></th>
+        </tr></thead>
+        <tbody>
+          <tr class="clickable" onclick="openDrawer()">
+            <td><strong>山口 彩</strong><br><span class="muted">やまぐち あや / 34歳</span></td>
+            <td>月8回</td><td class="num">5</td><td>07-26</td><td>08-02 10:00</td>
+            <td><span class="badge sage">正常</span></td><td>→</td>
+          </tr>
+          <tr class="clickable" onclick="openDrawer()">
+            <td><strong>大西 亮太</strong><br><span class="muted">おおにし りょうた / 41歳</span></td>
+            <td>回数券10回</td><td class="num" style="color:var(--ember)">1</td><td>07-27</td><td>08-01 16:00</td>
+            <td><span class="badge sage">正常</span></td><td>→</td>
+          </tr>
+          <tr class="clickable" onclick="openDrawer()">
+            <td><strong>田島 智之</strong><br><span class="muted">たじま ともゆき / 52歳</span></td>
+            <td>都度</td><td class="num">—</td><td>07-20</td><td>07-27 16:00</td>
+            <td><span class="badge rose">未収 ¥8,800</span></td><td>→</td>
+          </tr>
+          <tr class="clickable" onclick="openDrawer()">
+            <td><strong>桜井 みなみ</strong><br><span class="muted">さくらい みなみ / 29歳</span></td>
+            <td>都度</td><td class="num">—</td><td>07-24</td><td>07-27 14:00</td>
+            <td><span class="badge sage">正常</span></td><td>→</td>
+          </tr>
+          <tr class="clickable" onclick="openDrawer()">
+            <td><strong>久保 直人</strong><br><span class="muted">くぼ なおと / 38歳</span></td>
+            <td>月4回</td><td class="num">2</td><td>07-25</td><td>07-27 19:00</td>
+            <td><span class="badge sage">正常</span></td><td>→</td>
+          </tr>
+          <tr class="clickable" onclick="openDrawer()">
+            <td><strong>中原 さくら</strong><br><span class="muted">なかはら さくら / 26歳</span></td>
+            <td><span class="badge clay">体験</span></td><td class="num">—</td><td>—</td><td>07-27 18:00</td>
+            <td>—</td><td>→</td>
+          </tr>
+          <tr class="clickable" onclick="openDrawer()">
+            <td><strong>森本 恵</strong><br><span class="muted">もりもと めぐみ / 45歳</span></td>
+            <td>月8回</td><td class="num">8</td><td>06-30</td><td>—</td>
+            <td><span class="badge ember">4週間来店なし</span></td><td>→</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="todo">
+      <div class="muted">「4週間来店なし」は継続フォローの目印として自動で付きます。</div>
+      <div class="todo-note">離脱フォローの基準(何週間で / 誰に通知するか)が未確定。運用に乗る形かをヒアリングで確認する。</div>
+    </div>
+  </section>
+
+  <!-- ---------- 売上・決済 ---------- -->
+  <section class="view" id="a-sales">
+    <div class="grid3" style="margin-bottom:18px;">
+      <div class="stat"><div class="l">当月売上(7月)</div><div class="n">¥612,700</div><div class="sub">前月比 +4.2%</div></div>
+      <div class="stat"><div class="l">在籍会員</div><div class="n">28<small>名</small></div><div class="sub">今月 入会2 / 退会1</div></div>
+      <div class="stat"><div class="l">未収合計</div><div class="n" style="color:var(--rose)">¥17,600</div><div class="sub">2件 — 要対応</div></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>売上の内訳(7月)</h2>
+      <table>
+        <thead><tr><th>種別</th><th class="num">件数</th><th class="num">金額</th><th>決済手段</th></tr></thead>
+        <tbody>
+          <tr><td>月会費(サブスク)</td><td class="num">18</td><td class="num">¥475,200</td><td>カード自動</td></tr>
+          <tr><td>回数券</td><td class="num">2</td><td class="num">¥98,000</td><td>カード</td></tr>
+          <tr><td>都度払い</td><td class="num">4</td><td class="num">¥35,200</td><td>カード3 / 現金1</td></tr>
+          <tr><td>オプション(体組成測定)</td><td class="num">4</td><td class="num">¥4,400</td><td>現地払い</td></tr>
+          <tr><td><strong>合計</strong></td><td class="num"><strong>28</strong></td><td class="num"><strong>¥612,800</strong></td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>要対応(未収・失敗)</h2>
+      <table>
+        <thead><tr><th>会員</th><th>内容</th><th class="num">金額</th><th>状態</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>田島 智之</td><td>都度払い(07-20 実施分)</td><td class="num">¥8,800</td><td><span class="badge rose">未収</span></td><td><button class="btn sm ghost">請求リンクを送る</button></td></tr>
+          <tr><td>森本 恵</td><td>月会費 7月分</td><td class="num">¥8,800</td><td><span class="badge ember">カード期限切れ</span></td><td><button class="btn sm ghost">再決済を依頼</button></td></tr>
+        </tbody>
+      </table>
+      <div class="todo" style="margin-top:12px;">
+        <div class="muted">未収 = 実施済かつ決済未完了の状態です。</div>
+        <div class="todo-note">未収の判定タイミング・督促の手段(自動メール/手動)・返金の承認者が未確定。トレーナー複数時の売上按分も未決。→ ヒアリングA-4</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- 設定 ---------- -->
+  <section class="view" id="a-settings">
+    <div class="note" style="margin-bottom:18px;">
+      <strong>ここはすべて顧客側で変更できます。</strong>料金改定や営業時間の変更で開発側に依頼が発生しない状態を目標にしています(問い合わせ自体を消す設計)。
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>プラン・料金マスタ</h2>
+      <table>
+        <thead><tr><th>プラン名</th><th class="num">月額(税込)</th><th class="num">回数</th><th>状態</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>月8回プラン</td><td class="num">¥52,800</td><td class="num">8</td><td><span class="badge sage">有効</span></td><td><button class="btn sm ghost">編集</button></td></tr>
+          <tr><td>月4回プラン</td><td class="num">¥28,600</td><td class="num">4</td><td><span class="badge sage">有効</span></td><td><button class="btn sm ghost">編集</button></td></tr>
+          <tr><td>都度払い</td><td class="num">¥8,800</td><td class="num">1</td><td><span class="badge sage">有効</span></td><td><button class="btn sm ghost">編集</button></td></tr>
+          <tr><td>体験セッション</td><td class="num">¥3,300</td><td class="num">1</td><td><span class="badge sage">有効</span></td><td><button class="btn sm ghost">編集</button></td></tr>
+        </tbody>
+      </table>
+      <button class="btn sm ghost" style="margin-top:12px;">プランを追加</button>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2><span class="dot"></span>営業時間・定休日</h2>
+        <div class="kv"><span class="k">平日</span><span class="v">09:00 - 21:00</span></div>
+        <div class="kv"><span class="k">土曜</span><span class="v">09:00 - 18:00</span></div>
+        <div class="kv"><span class="k">定休日</span><span class="v">日曜・祝日</span></div>
+        <div class="kv"><span class="k">1枠の長さ</span><span class="v">60分</span></div>
+        <div class="kv"><span class="k">休憩帯</span><span class="v">12:00 - 14:00</span></div>
+        <button class="btn sm ghost" style="margin-top:12px;">編集</button>
+      </div>
+      <div class="card todo">
+        <h2><span class="dot"></span>キャンセルポリシー</h2>
+        <div class="kv"><span class="k">無料キャンセル期限</span><span class="v">前日 20:00</span></div>
+        <div class="kv"><span class="k">期限後のキャンセル</span><span class="v">1回消化</span></div>
+        <div class="kv"><span class="k">無断欠席</span><span class="v">1回消化</span></div>
+        <div class="kv"><span class="k">変更の受付期限</span><span class="v">前日 20:00</span></div>
+        <button class="btn sm ghost" style="margin-top:12px;">編集</button>
+        <div class="todo-note">現在の値はすべて仮置き。この4つが業務ルールの根幹なので最優先で確定する。→ ヒアリングA-1</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2><span class="dot"></span>トレーナー</h2>
+        <div class="item"><div class="main"><div class="t">佐々木 健</div><div class="s">月火水木金土 / 09:00-21:00</div></div><div class="end"><span class="badge sage">稼働中</span></div></div>
+        <div class="item"><div class="main"><div class="t">三浦 悠</div><div class="s">火木土 / 14:00-21:00</div></div><div class="end"><span class="badge sage">稼働中</span></div></div>
+        <button class="btn sm ghost" style="margin-top:12px;">トレーナーを追加</button>
+      </div>
+      <div class="card todo">
+        <h2><span class="dot"></span>通知</h2>
+        <div class="kv"><span class="k">予約確認</span><span class="v">メール</span></div>
+        <div class="kv"><span class="k">前日リマインド</span><span class="v">メール(前日18:00)</span></div>
+        <div class="kv"><span class="k">決済失敗</span><span class="v">メール + 管理者通知</span></div>
+        <div class="todo-note">会員がメールを見ない業態の場合、LINE公式アカウント連携が必須になる。通知チャネルの正を確定する。→ ヒアリングD-13</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- 管理マニュアル ---------- -->
+  <section class="view" id="a-manual">
+    <div class="card guide">
+      <h3>1日の流れ</h3>
+      <ol>
+        <li><strong>朝</strong>: 「本日」タブを開きます。予約・未収・当日変更が1画面に出ます。</li>
+        <li><strong>セッション後</strong>: 「実施を記録」を押すと1回消化され、そのままカルテ入力に進みます。</li>
+        <li><strong>都度払いの方</strong>: 実施記録のときに決済状態を確認します。未決済のまま帰られた場合は「未収」に入ります。</li>
+        <li><strong>閉店後</strong>: 「売上・決済」の要対応が0件なら、その日の事務は終わりです。</li>
+      </ol>
+      <h3>電話で予約・変更を受けたとき</h3>
+      <ol>
+        <li>「予約管理」タブ → 該当の枠をクリック、または「代理で予約を入れる」。</li>
+        <li>会員を選び、内容を入れて確定します。<strong>誰が代理で入れたかは記録に残ります</strong>。</li>
+        <li>変更の場合は元の予約に「変更」の印が付き、変更前の日時も履歴に残ります。</li>
+      </ol>
+      <h3>会員を追加する / プランを変える</h3>
+      <ul>
+        <li>「会員」タブ →「会員を登録」。体験のみの方も登録できます。</li>
+        <li>プラン変更・休会・退会は会員詳細から行います(次回請求への反映日が表示されます)。</li>
+      </ul>
+      <h3>料金や営業時間を変えたいとき</h3>
+      <ul>
+        <li>「設定」タブから変更できます。<strong>開発会社への依頼は不要です。</strong></li>
+        <li>料金を変更しても、既に確定している予約と過去の決済には影響しません。</li>
+      </ul>
+      <h3>困ったとき</h3>
+      <ul>
+        <li>決済が失敗した会員には「再決済を依頼」から案内を送れます。</li>
+        <li>返金はオーナー権限のみ実行できます。</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="foot">モックアップ / パーソナルジム 予約・決済・顧客管理<br>実データではありません(氏名はすべて架空)</div>
+</div>
+</div>
+
+<!-- 合言葉ゲート(ホスティング時のみ表示。file:// で開いたときは出ない) -->
+<div id="gate" style="display:none;position:fixed;inset:0;z-index:1000;background:var(--sand);align-items:center;justify-content:center;padding:24px;">
+  <div style="max-width:340px;width:100%;text-align:center;">
+    <div style="font-size:11px;letter-spacing:.18em;color:var(--clay-deep);font-weight:700;">STUDIO DEMO</div>
+    <h1 style="font-size:19px;margin:4px 0 6px;">パーソナルジム 予約システム</h1>
+    <p class="muted" style="margin-bottom:18px;">テストサイトです。お渡ししている合言葉を入力してください。</p>
+    <input id="gateInput" type="password" placeholder="合言葉" autocomplete="off"
+      style="width:100%;padding:13px;border:1px solid var(--line);border-radius:14px;font-size:16px;text-align:center;margin-bottom:10px;background:#fff;"
+      onkeydown="if(event.key==='Enter')gateCheck()">
+    <button class="btn block" onclick="gateCheck()">開く</button>
+    <p id="gateErr" class="muted" style="color:var(--rose);margin-top:10px;visibility:hidden;">合言葉が違います</p>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- ボトムシート・ドロワー                                          -->
+<!-- ============================================================== -->
+<div class="veil" id="veil" onclick="closeAll()"></div>
+
+<div class="sheet" id="sheetConfirm">
+  <div class="grip"></div>
+  <h3>予約の確認</h3>
+  <p class="muted">内容をご確認ください。</p>
+  <div style="margin-top:14px;">
+    <div class="kv"><span class="k">日時</span><span class="v" id="cfDate">7/29(火) 14:00 - 15:00</span></div>
+    <div class="kv"><span class="k">トレーナー</span><span class="v" id="cfTr">佐々木 健</span></div>
+    <div class="kv"><span class="k">場所</span><span class="v">スタジオA</span></div>
+    <div class="kv"><span class="k">お支払い</span><span class="v" id="cfPay">月8回プランの消化(残5回)</span></div>
+  </div>
+  <div class="policy">
+    前日20:00まではアプリで無料でキャンセルできます。以降のキャンセル・無断欠席は1回消化となります。
+  </div>
+  <button class="btn block" onclick="doBook()">予約を確定する</button>
+  <button class="btn ghost block" style="margin-top:10px;" onclick="closeAll()">戻る</button>
+</div>
+
+<div class="sheet" id="sheetDone">
+  <div class="grip"></div>
+  <div style="text-align:center;padding:8px 0 4px;">
+    <div style="font-size:44px;line-height:1;">🌿</div>
+    <h3 style="margin-top:10px;">予約が確定しました</h3>
+    <p class="muted" id="doneMsg">7/29(火) 14:00 / 佐々木 健</p>
+  </div>
+  <div class="policy" style="margin-top:16px;">確認メールを ayaya***@example.com にお送りしました。前日18:00にリマインドが届きます。</div>
+  <button class="btn block" onclick="closeAll(); goM('m-list')">予約一覧を見る</button>
+</div>
+
+<div class="sheet" id="sheetCancel">
+  <div class="grip"></div>
+  <h3>予約をキャンセルする</h3>
+  <div style="margin-top:12px;">
+    <div class="kv"><span class="k">日時</span><span class="v">8/2(土) 10:00 - 11:00</span></div>
+    <div class="kv"><span class="k">トレーナー</span><span class="v">佐々木 健</span></div>
+    <div class="kv"><span class="k">消化の扱い</span><span class="v" style="color:var(--sage)">無料(消化なし)</span></div>
+  </div>
+  <div class="policy">
+    キャンセル無料の期限まで <strong>あと 5日と 9時間</strong>。<br>
+    期限(8/1 20:00)を過ぎると1回消化となります。
+  </div>
+  <button class="btn danger block" onclick="doCancel()">キャンセルを確定する</button>
+  <button class="btn ghost block" style="margin-top:10px;" onclick="closeAll()">やめる</button>
+</div>
+
+<div class="sheet" id="sheetChange">
+  <div class="grip"></div>
+  <h3>日時を変更する</h3>
+  <p class="muted">変更後の枠を選んでください。空いている枠のみ表示しています。</p>
+  <div class="chips" style="margin-top:14px;">
+    <div class="chip on">8/2(土) 11:00</div>
+    <div class="chip">8/3(日) —</div>
+    <div class="chip">8/5(火) 10:00</div>
+    <div class="chip">8/5(火) 14:00</div>
+  </div>
+  <div class="policy">変更は前日20:00まで、1予約につき2回まで可能です(※上限は確定前)。</div>
+  <button class="btn block" onclick="closeAll()">この枠に変更する</button>
+</div>
+
+<div class="sheet" id="sheetProxy">
+  <div class="grip"></div>
+  <h3>代理で予約を入れる</h3>
+  <p class="muted">電話・店頭で受けた予約を登録します。記録には「代理登録」と担当者名が残ります。</p>
+  <div class="field"><label>会員</label><select><option>山口 彩</option><option>大西 亮太</option><option>田島 智之</option><option>桜井 みなみ</option></select></div>
+  <div class="field"><label>日時</label><input value="2026-07-30 11:00"></div>
+  <div class="field"><label>お支払い</label><select><option>プランを消化</option><option>回数券を消化</option><option>都度払い(現地)</option><option>都度払い(請求リンクを送る)</option></select></div>
+  <div class="field"><label>メモ(任意)</label><textarea placeholder="例: お子さんの都合で急遽の変更。次回も同時間帯を希望。"></textarea></div>
+  <button class="btn block" onclick="closeAll()">登録する</button>
+</div>
+
+<div class="drawer" id="drawer">
+  <button class="x" onclick="closeAll()">×</button>
+  <div class="kicker" style="font-size:11px;letter-spacing:.18em;color:var(--clay-deep);font-weight:700;">MEMBER</div>
+  <h2 style="font-size:22px;">山口 彩 <span class="badge sky" style="vertical-align:4px;">継続12か月</span></h2>
+  <div class="muted">やまぐち あや / 34歳 / 会員番号 0142 / 入会 2025-08-01</div>
+
+  <div class="seg">
+    <button class="on" onclick="segTo(this,'p-sum')">サマリー</button>
+    <button onclick="segTo(this,'p-rec')">カルテ</button>
+    <button onclick="segTo(this,'p-res')">予約履歴</button>
+    <button onclick="segTo(this,'p-pay')">決済</button>
+    <button onclick="segTo(this,'p-memo')">メモ</button>
+  </div>
+
+  <div class="pane on" id="p-sum">
+    <div class="card flat">
+      <div class="kv"><span class="k">プラン</span><span class="v">月8回プラン ¥52,800</span></div>
+      <div class="kv"><span class="k">今月の消化</span><span class="v">3 / 8回(残5)</span></div>
+      <div class="kv"><span class="k">回数券</span><span class="v">残2回(期限 2026-10-15)</span></div>
+      <div class="kv"><span class="k">担当トレーナー</span><span class="v">佐々木 健</span></div>
+      <div class="kv"><span class="k">次回予約</span><span class="v">08-02(土) 10:00</span></div>
+      <div class="kv"><span class="k">決済状態</span><span class="v"><span class="badge sage">正常</span></span></div>
+      <div class="kv"><span class="k">連絡先</span><span class="v">090-****-1234 / ayaya***@example.com</span></div>
+    </div>
+    <div class="row" style="gap:10px;flex-wrap:wrap;">
+      <button class="btn sm ghost">プランを変更</button>
+      <button class="btn sm ghost">休会にする</button>
+      <button class="btn sm ghost">代理で予約</button>
+    </div>
+  </div>
+
+  <div class="pane" id="p-rec">
+    <div class="card flat">
+      <div class="row between"><strong>2026-07-26</strong><span class="muted">佐々木</span></div>
+      <div class="muted">体重 54.2kg / 体脂肪 24.1% / 筋肉量 38.9kg</div>
+      <table style="margin-top:8px;">
+        <tbody>
+          <tr><td>スクワット</td><td class="num">40kg</td><td class="num">10×3</td></tr>
+          <tr><td>ラットプルダウン</td><td class="num">30kg</td><td class="num">12×3</td></tr>
+          <tr><td>ヒップスラスト</td><td class="num">50kg</td><td class="num">10×3</td></tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:10px;">フォーム安定。次回スクワット45kgへ。腰の違和感の訴えなし。</div>
+    </div>
+    <div class="field"><label>今回の記録を追加</label><textarea placeholder="種目・重量・回数・所感"></textarea></div>
+    <div class="row" style="gap:10px;"><button class="btn sm">保存</button><button class="btn sm ghost">前回をコピー</button></div>
+    <div class="todo" style="margin-top:14px;">
+      <div class="muted">カルテは担当トレーナーとオーナーが閲覧できます。</div>
+      <div class="todo-note">健康情報を含むため、閲覧権限の範囲・取得同意の取り方・保存期間を要件に含める必要がある。</div>
+    </div>
+  </div>
+
+  <div class="pane" id="p-res">
+    <div class="item"><div class="main"><div class="t">08-02(土) 10:00 / 佐々木</div><div class="s">アプリから予約</div></div><div class="end"><span class="badge sage">確定</span></div></div>
+    <div class="item"><div class="main"><div class="t">07-26(土) 10:00 / 佐々木</div><div class="s">アプリから予約</div></div><div class="end"><span class="badge sage">実施済</span></div></div>
+    <div class="item"><div class="main"><div class="t">07-19(土) 10:00 / 佐々木</div><div class="s">15:00→10:00 に変更(本人)</div></div><div class="end"><span class="badge ember">変更あり</span></div></div>
+    <div class="item off"><div class="main"><div class="t">07-12(土) 10:00 / 佐々木</div><div class="s">前日18:20にキャンセル(消化なし)</div></div><div class="end"><span class="badge rose">キャンセル</span></div></div>
+  </div>
+
+  <div class="pane" id="p-pay">
+    <table>
+      <thead><tr><th>日付</th><th>内容</th><th class="num">金額</th><th>状態</th></tr></thead>
+      <tbody>
+        <tr><td>07-01</td><td>月会費 7月分</td><td class="num">¥52,800</td><td><span class="badge sage">完了</span></td></tr>
+        <tr><td>06-20</td><td>体組成測定</td><td class="num">¥1,100</td><td><span class="badge sage">完了(現金)</span></td></tr>
+        <tr><td>06-01</td><td>月会費 6月分</td><td class="num">¥52,800</td><td><span class="badge sage">完了</span></td></tr>
+        <tr><td>04-15</td><td>10回券</td><td class="num">¥79,200</td><td><span class="badge sage">完了</span></td></tr>
+      </tbody>
+    </table>
+    <div class="row" style="gap:10px;margin-top:12px;"><button class="btn sm ghost">領収書を発行</button><button class="btn sm ghost">返金する</button></div>
+  </div>
+
+  <div class="pane" id="p-memo">
+    <div class="card flat">
+      <div class="muted">2026-07-26 佐々木</div>
+      <div>下のお子さんの送迎があるため土曜午前が固定。夏は日焼けを気にして屋外ランは避けたい意向。</div>
+    </div>
+    <div class="card flat">
+      <div class="muted">2026-05-10 三浦</div>
+      <div>右肩に古い違和感あり。オーバーヘッド系は重量を上げない。</div>
+    </div>
+    <div class="field"><label>メモを追加</label><textarea placeholder="会話の内容・配慮事項・希望など"></textarea></div>
+    <button class="btn sm">保存</button>
+  </div>
+</div>
+
+<script>
+/* ------------------------------------------------------------------
+   合言葉ゲート(テストサイト共有用の軽いゲート)
+   ソースを読めば突破できる程度のもの。実データを載せる段階になったら
+   本物の認証に置き換える。合言葉の変更: echo -n "新合言葉" | shasum -a 256
+   ------------------------------------------------------------------ */
+const GATE_HASH = "38f5b761dc5c9d1b64033773692c74ccdca35149446106838908dac2c1ab5f14";
+async function sha256(s) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+function gateInit() {
+  const hosted = location.protocol !== "file:";   // 配布ファイルを直接開いたときは邪魔しない
+  if (hosted && sessionStorage.getItem("gymGate") !== GATE_HASH) {
+    document.getElementById("gate").style.display = "flex";
+    setTimeout(() => document.getElementById("gateInput").focus(), 100);
+  }
+}
+async function gateCheck() {
+  const h = await sha256(document.getElementById("gateInput").value.trim());
+  if (h === GATE_HASH) {
+    sessionStorage.setItem("gymGate", h);
+    document.getElementById("gate").style.display = "none";
+  } else {
+    document.getElementById("gateErr").style.visibility = "visible";
+  }
+}
+gateInit();
+
+/* ------------------------------------------------------------------
+   モック用の最小限のふるまい。本番実装とは無関係(使い捨て)。
+   ------------------------------------------------------------------ */
+const sel = { tr: '佐々木 健', date: '7/29(火)', time: null, pay: '月8回プランの消化(残5回)' };
+
+function switchApp(which) {
+  document.getElementById('app-member').classList.toggle('on', which === 'member');
+  document.getElementById('app-admin').classList.toggle('on', which === 'admin');
+  document.getElementById('btnMember').classList.toggle('active', which === 'member');
+  document.getElementById('btnAdmin').classList.toggle('active', which === 'admin');
+  window.scrollTo(0, 0);
+}
+
+function goM(id) {
+  document.querySelectorAll('#app-member .view').forEach(v => v.classList.toggle('on', v.id === id));
+  document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.v === id));
+  window.scrollTo(0, 0);
+}
+function goA(id) {
+  document.querySelectorAll('#app-admin .view').forEach(v => v.classList.toggle('on', v.id === id));
+  document.querySelectorAll('.toptabs button').forEach(b => b.classList.toggle('on', b.dataset.v === id));
+  window.scrollTo(0, 0);
+}
+
+function pick(el, groupId, key) {
+  const group = document.getElementById(groupId);
+  group.querySelectorAll('.chip, .date, .slot').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  if (key === 'tr')   sel.tr = el.dataset.tr;
+  if (key === 'date') sel.date = el.dataset.d;
+  if (key === 'time') sel.time = el.dataset.t;
+  if (key === 'pay')  sel.pay = el.dataset.p;
+  updateSummary();
+}
+
+function updateSummary() {
+  const s = document.getElementById('bookSummary');
+  s.textContent = sel.time
+    ? `${sel.tr} / ${sel.date} / ${sel.time}`
+    : `${sel.tr} / ${sel.date} / 時間を選んでください`;
+  document.getElementById('cfDate').textContent = sel.time ? `${sel.date} ${sel.time}` : sel.date;
+  document.getElementById('cfTr').textContent = sel.tr;
+  document.getElementById('cfPay').textContent = sel.pay;
+}
+
+function openSheet(id) {
+  if (id === 'sheetConfirm' && !sel.time) { alert('時間を選んでください'); return; }
+  closeAll();
+  document.getElementById('veil').classList.add('on');
+  document.getElementById(id).classList.add('on');
+}
+function openDrawer() {
+  closeAll();
+  document.getElementById('veil').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function closeAll() {
+  document.getElementById('veil').classList.remove('on');
+  document.querySelectorAll('.sheet').forEach(s => s.classList.remove('on'));
+  document.getElementById('drawer').classList.remove('on');
+}
+
+function doBook() {
+  document.getElementById('doneMsg').textContent = `${sel.date} ${sel.time} / ${sel.tr}`;
+  closeAll();
+  document.getElementById('veil').classList.add('on');
+  document.getElementById('sheetDone').classList.add('on');
+}
+
+function doCancel() {
+  const r = document.getElementById('resA');
+  if (r) {
+    r.classList.add('off');
+    r.querySelector('.main .s').textContent = 'キャンセル済(消化なし)';
+    r.querySelector('.end').innerHTML = '<span class="badge rose">キャンセル</span>';
+  }
+  closeAll();
+  goM('m-list');
+}
+
+function markDone(btn) {
+  const row = btn.closest('.tlrow');
+  row.classList.add('done');
+  btn.outerHTML = '<span class="badge sage">実施済</span><button class="btn sm ghost" onclick="openDrawer()">カルテ</button>';
+}
+
+function segTo(btn, id) {
+  document.querySelectorAll('.seg button').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === id));
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+updateSummary();
+</script>
+</body>
+</html>
