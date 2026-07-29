@@ -181,6 +181,7 @@
   .chip.on { border-color: var(--clay); background: var(--clay-soft); font-weight: 700; color: var(--clay-deep); }
   .chip .sub { font-size: 11px; color: var(--ink-soft); font-weight: 400; }
   .chip.on .sub { color: var(--clay-deep); }
+  .chip.x { opacity: .45; cursor: not-allowed; }
 
   .dates { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 8px; }
   .date {
@@ -520,6 +521,11 @@
       <div class="badge clay">次回のご予約</div>
       <div class="when" style="margin-top:8px;">8月2日(土)10:00</div>
       <div class="with">担当: 佐々木トレーナー / 60分 / スタジオA</div>
+      <div class="todo" style="margin-top:14px;">
+        <button class="btn block" id="unlockBtn" onclick="doUnlock()">🔓 入口を解錠する</button>
+        <div class="muted" style="margin-top:8px;text-align:center;">開始10分前から終了時刻まで表示されます(デモのため常時表示)</div>
+        <div class="todo-note">機種はSwitchBot想定で確定(2026-07-30)。解錠できる時間帯(開始何分前から)・退室時の施錠・体験の方の扱い・障害/電池切れ時の代替(キーパッド等)が未確定。→ ヒアリングD-15</div>
+      </div>
       <div class="acts">
         <button class="btn sm ghost" onclick="openSheet('sheetChange')">日時を変更</button>
         <button class="btn sm ghost" onclick="openSheet('sheetCancel')">キャンセル</button>
@@ -594,6 +600,19 @@
         <div class="slot" data-t="18:00" onclick="pick(this,'slotChips','time')"><div class="t">18:00</div><div class="s">空き</div></div>
         <div class="slot few" data-t="19:00" onclick="pick(this,'slotChips','time')"><div class="t">19:00</div><div class="s">残1</div></div>
         <div class="slot x"><div class="t">20:00</div><div class="s">×</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>4. 部屋を選ぶ</h2>
+      <div class="chips" id="roomChips">
+        <div class="chip on" data-rm="スタジオA" onclick="pick(this,'roomChips','room')">スタジオA<span class="sub">マシン中心</span></div>
+        <div class="chip" data-rm="スタジオB" onclick="pick(this,'roomChips','room')">スタジオB<span class="sub">フリーウェイト・ストレッチ</span></div>
+      </div>
+      <div class="muted" style="margin-top:10px;" id="roomHint">選んだ日時で空いている部屋だけ選べます。</div>
+      <div class="todo">
+        <div class="muted">「残1」の時間帯は、空いている部屋が1つだけの状態です。</div>
+        <div class="todo-note">会員に部屋を選ばせるか(おまかせ既定にするか)、部屋ごとの設備差でメニューを制限するかが未確定。→ ヒアリングB-8a</div>
       </div>
     </div>
 
@@ -733,10 +752,17 @@
       <h3>予約する</h3>
       <ol>
         <li>下の「予約」を押します。</li>
-        <li>トレーナー → 日付 → 時間の順に選びます(選ぶたびに空き状況が更新されます)。</li>
+        <li>トレーナー → 日付 → 時間 → 部屋の順に選びます(選ぶたびに空き状況が更新されます)。</li>
+        <li>部屋は<strong>その日時に空いているものだけ</strong>選べます。「残1」の時間帯は部屋が1つしか空いていないため、選択肢も1つになります。</li>
         <li>お支払い方法を確認し、「この内容で予約する」を押します。</li>
         <li>確認画面で内容を見て「予約を確定する」を押すと完了です。登録のメールアドレスに確認メールが届きます。</li>
       </ol>
+      <h3>入店する(オートロックの解錠)</h3>
+      <ul>
+        <li>予約の開始10分前になると、ホームの「次回のご予約」に<strong>「入口を解錠する」ボタン</strong>が表示されます。</li>
+        <li>ドアの前でボタンを押すと解錠されます。そのままお入りください。</li>
+        <li>ボタンが表示されないときは時間外です。お手数ですがインターホンでお呼び出しください。</li>
+      </ul>
       <h3>変更・キャンセル</h3>
       <ul>
         <li>「予約」タブの一覧から該当の予約を選びます。</li>
@@ -804,23 +830,23 @@
       <h2><span class="dot"></span>本日のスケジュール</h2>
       <div class="tl"><div class="ln"></div>
         <div class="tlrow done"><div class="hh">09:00</div><div class="pin"></div>
-          <div class="tlcard"><div class="who"><div class="n">山口 彩 <span class="badge sky">継続12か月</span></div><div class="s">月8回プラン消化 / 60分</div></div>
+          <div class="tlcard"><div class="who"><div class="n">山口 彩 <span class="badge sky">継続12か月</span></div><div class="s">月8回プラン消化 / 60分 / スタジオA</div></div>
             <span class="badge sage">実施済</span><button class="btn sm ghost" onclick="openDrawer()">カルテ</button></div></div>
         <div class="tlrow done"><div class="hh">10:00</div><div class="pin"></div>
-          <div class="tlcard"><div class="who"><div class="n">大西 亮太</div><div class="s">回数券消化(残1) / 60分</div></div>
+          <div class="tlcard"><div class="who"><div class="n">大西 亮太</div><div class="s">回数券消化(残1) / 60分 / スタジオB</div></div>
             <span class="badge sage">実施済</span><button class="btn sm ghost" onclick="openDrawer()">カルテ</button></div></div>
         <div class="tlrow empty"><div class="hh">11:00</div><div class="pin"></div><div class="tlcard">空き枠(公開中)</div></div>
         <div class="tlrow"><div class="hh">14:00</div><div class="pin"></div>
-          <div class="tlcard"><div class="who"><div class="n">桜井 みなみ <span class="badge ember">当日変更</span></div><div class="s">15:00 → 14:00 に変更(本人希望)/ 60分</div></div>
+          <div class="tlcard"><div class="who"><div class="n">桜井 みなみ <span class="badge ember">当日変更</span></div><div class="s">15:00 → 14:00 に変更(本人希望)/ 60分 / スタジオA</div></div>
             <button class="btn sm" onclick="openSession(this)">記録しながら実施</button></div></div>
         <div class="tlrow"><div class="hh">16:00</div><div class="pin"></div>
-          <div class="tlcard"><div class="who"><div class="n">田島 智之 <span class="badge rose">未収 ¥8,800</span></div><div class="s">都度払い / 前回分が未決済</div></div>
+          <div class="tlcard"><div class="who"><div class="n">田島 智之 <span class="badge rose">未収 ¥8,800</span></div><div class="s">都度払い / 前回分が未決済 / スタジオA</div></div>
             <button class="btn sm" onclick="openSession(this)">記録しながら実施</button></div></div>
         <div class="tlrow"><div class="hh">18:00</div><div class="pin"></div>
-          <div class="tlcard"><div class="who"><div class="n">中原 さくら <span class="badge clay">体験</span></div><div class="s">体験セッション / 30分 / 初回</div></div>
+          <div class="tlcard"><div class="who"><div class="n">中原 さくら <span class="badge clay">体験</span></div><div class="s">体験セッション / 30分 / 初回 / スタジオB</div></div>
             <button class="btn sm" onclick="openSession(this)">記録しながら実施</button></div></div>
         <div class="tlrow"><div class="hh">19:00</div><div class="pin"></div>
-          <div class="tlcard"><div class="who"><div class="n">久保 直人</div><div class="s">月4回プラン消化 / 60分</div></div>
+          <div class="tlcard"><div class="who"><div class="n">久保 直人</div><div class="s">月4回プラン消化 / 60分 / スタジオA</div></div>
             <button class="btn sm" onclick="openSession(this)">記録しながら実施</button></div></div>
       </div>
       <div class="todo" style="margin-top:14px;">
@@ -840,6 +866,7 @@
       </div>
       <div class="row" style="gap:8px;">
         <select class="btn sm ghost" style="padding:8px 14px;"><option>佐々木 健</option><option>三浦 悠</option><option>全トレーナー</option></select>
+        <select class="btn sm ghost" style="padding:8px 14px;"><option>全部屋</option><option>スタジオA</option><option>スタジオB</option></select>
         <button class="btn sm" onclick="openSheet('sheetProxy')">代理で予約を入れる</button>
       </div>
     </div>
@@ -852,26 +879,26 @@
         <div class="hd">木<small>31</small></div><div class="hd">金<small>8/1</small></div><div class="hd">土<small>2</small></div><div class="hd">日<small>3</small></div>
 
         <div class="hr">09:00</div>
-        <div class="cell booked"><div class="nm">山口 彩</div><div class="tr">プラン</div></div>
+        <div class="cell booked"><div class="nm">山口 彩</div><div class="tr">プラン・A</div></div>
         <div class="cell open">空き</div>
-        <div class="cell booked"><div class="nm">久保 直人</div><div class="tr">プラン</div></div>
-        <div class="cell booked"><div class="nm">大西 亮太</div><div class="tr">回数券</div></div>
+        <div class="cell booked"><div class="nm">久保 直人</div><div class="tr">プラン・A</div></div>
+        <div class="cell booked"><div class="nm">大西 亮太</div><div class="tr">回数券・B</div></div>
         <div class="cell open">空き</div>
-        <div class="cell booked"><div class="nm">山口 彩</div><div class="tr">プラン</div></div>
+        <div class="cell booked"><div class="nm">山口 彩</div><div class="tr">プラン・A</div></div>
         <div class="cell closed">定休</div>
 
         <div class="hr">10:00</div>
-        <div class="cell booked"><div class="nm">大西 亮太</div><div class="tr">回数券</div></div>
+        <div class="cell booked"><div class="nm">大西 亮太</div><div class="tr">回数券・B</div></div>
         <div class="cell open">空き</div>
-        <div class="cell booked"><div class="nm">桜井 みなみ</div><div class="tr">都度</div></div>
-        <div class="cell booked"><div class="nm">中原 さくら</div><div class="tr">体験</div></div>
+        <div class="cell booked"><div class="nm">桜井 みなみ</div><div class="tr">都度・A</div></div>
+        <div class="cell booked"><div class="nm">中原 さくら</div><div class="tr">体験・B</div></div>
         <div class="cell open">空き</div>
-        <div class="cell booked"><div class="nm">田島 智之</div><div class="tr">都度</div></div>
+        <div class="cell booked"><div class="nm">田島 智之</div><div class="tr">都度・A</div></div>
         <div class="cell closed">定休</div>
 
         <div class="hr">11:00</div>
         <div class="cell open">空き</div><div class="cell open">空き</div><div class="cell open">空き</div>
-        <div class="cell booked"><div class="nm">久保 直人</div><div class="tr">プラン</div></div>
+        <div class="cell booked"><div class="nm">久保 直人</div><div class="tr">プラン・A</div></div>
         <div class="cell open">空き</div><div class="cell open">空き</div><div class="cell closed">定休</div>
 
         <div class="hr">12-13</div>
@@ -879,44 +906,44 @@
         <div class="cell closed">休憩</div><div class="cell closed">休憩</div><div class="cell closed">休憩</div><div class="cell closed">定休</div>
 
         <div class="hr">14:00</div>
-        <div class="cell booked"><div class="nm">桜井 みなみ</div><div class="tr">都度</div></div>
+        <div class="cell booked"><div class="nm">桜井 みなみ</div><div class="tr">都度・A</div></div>
         <div class="cell open">空き</div>
         <div class="cell open">空き</div>
-        <div class="cell booked"><div class="nm">山口 彩</div><div class="tr">プラン</div></div>
+        <div class="cell booked"><div class="nm">山口 彩</div><div class="tr">プラン・A</div></div>
         <div class="cell open">空き</div><div class="cell open">空き</div><div class="cell closed">定休</div>
 
         <div class="hr">16:00</div>
-        <div class="cell booked"><div class="nm">田島 智之</div><div class="tr">都度</div></div>
+        <div class="cell booked"><div class="nm">田島 智之</div><div class="tr">都度・A</div></div>
         <div class="cell closed">非公開</div>
         <div class="cell open">空き</div>
         <div class="cell open">空き</div>
-        <div class="cell booked"><div class="nm">大西 亮太</div><div class="tr">回数券</div></div>
+        <div class="cell booked"><div class="nm">大西 亮太</div><div class="tr">回数券・B</div></div>
         <div class="cell open">空き</div><div class="cell closed">定休</div>
 
         <div class="hr">18:00</div>
-        <div class="cell booked"><div class="nm">中原 さくら</div><div class="tr">体験</div></div>
-        <div class="cell booked"><div class="nm">久保 直人</div><div class="tr">プラン</div></div>
+        <div class="cell booked"><div class="nm">中原 さくら</div><div class="tr">体験・B</div></div>
+        <div class="cell booked"><div class="nm">久保 直人</div><div class="tr">プラン・A</div></div>
         <div class="cell open">空き</div>
         <div class="cell open">空き</div>
-        <div class="cell booked"><div class="nm">桜井 みなみ</div><div class="tr">都度</div></div>
+        <div class="cell booked"><div class="nm">桜井 みなみ</div><div class="tr">都度・A</div></div>
         <div class="cell closed">非公開</div><div class="cell closed">定休</div>
 
         <div class="hr">19:00</div>
-        <div class="cell booked"><div class="nm">久保 直人</div><div class="tr">プラン</div></div>
+        <div class="cell booked"><div class="nm">久保 直人</div><div class="tr">プラン・A</div></div>
         <div class="cell open">空き</div>
-        <div class="cell booked"><div class="nm">山口 彩</div><div class="tr">プラン</div></div>
+        <div class="cell booked"><div class="nm">山口 彩</div><div class="tr">プラン・A</div></div>
         <div class="cell open">空き</div>
         <div class="cell open">空き</div>
         <div class="cell closed">非公開</div><div class="cell closed">定休</div>
       </div>
       </div>
       <div class="row" style="gap:14px;margin-top:14px;flex-wrap:wrap;">
-        <span class="muted">セルをクリック: 予約詳細 / 空き枠を非公開にする</span>
+        <span class="muted">セルをクリック: 予約詳細 / 空き枠を非公開にする。予約済セルの「・A / ・B」は使用する部屋</span>
         <span class="badge clay">予約済</span><span class="badge sage">空き(公開)</span><span class="badge ember">非公開・休憩</span>
       </div>
       <div class="todo" style="margin-top:12px;">
-        <div class="muted">枠は営業時間から自動生成し、埋まった枠と非公開枠を除いて会員に見せています。</div>
-        <div class="todo-note">枠の作り方(自動生成 or トレーナーが空き時間を開ける)が未確定。→ ヒアリングB-6</div>
+        <div class="muted">枠は営業時間から自動生成し、埋まった枠と非公開枠を除いて会員に見せています。「空き」= トレーナーと部屋の両方が空いている枠です。</div>
+        <div class="todo-note">枠の作り方(自動生成 or トレーナーが空き時間を開ける)が未確定。→ ヒアリングB-6。部屋の割当ルール(予約時に自動で空き部屋を割当 / トレーナーごとに固定 / 手動)も未確定。→ ヒアリングB-8a</div>
       </div>
     </div>
   </section>
@@ -1190,6 +1217,13 @@
         <button class="btn sm ghost" style="margin-top:12px;">トレーナーを追加</button>
       </div>
       <div class="card todo">
+        <h2><span class="dot"></span>部屋(スタジオ)</h2>
+        <div class="item"><div class="main"><div class="t">スタジオA</div><div class="s">マシン中心 / 同時1組</div></div><div class="end"><span class="badge sage">利用中</span></div></div>
+        <div class="item"><div class="main"><div class="t">スタジオB</div><div class="s">フリーウェイト・ストレッチ / 同時1組</div></div><div class="end"><span class="badge sage">利用中</span></div></div>
+        <button class="btn sm ghost" style="margin-top:12px;">部屋を追加</button>
+        <div class="todo-note">同一ジム内の複数部屋を前提。部屋の数・設備差(部屋によってできるメニューが変わるか)・予約時の割当ルール(自動/固定/手動)が未確定。→ ヒアリングB-8a</div>
+      </div>
+      <div class="card todo">
         <h2><span class="dot"></span>通知</h2>
         <div class="kv"><span class="k">予約確認</span><span class="v">メール</span></div>
         <div class="kv"><span class="k">前日リマインド</span><span class="v">メール(前日18:00)</span></div>
@@ -1224,8 +1258,16 @@
       <ol>
         <li>「予約管理」タブ → 該当の枠をクリック、または「代理で予約を入れる」。</li>
         <li>会員を選び、内容を入れて確定します。<strong>誰が代理で入れたかは記録に残ります</strong>。</li>
+        <li>部屋は「自動割当」のままで、空いている部屋が使われます。マシンの都合などで部屋を決めたいときだけ指定してください。</li>
         <li>変更の場合は元の予約に「変更」の印が付き、変更前の日時も履歴に残ります。</li>
       </ol>
+      <h3>部屋(スタジオ)ごとの予約を見る</h3>
+      <ul>
+        <li>「予約管理」の週カレンダーで、予約済セルの「・A / ・B」がその予約の使用部屋です。</li>
+        <li>右上の部屋の絞り込みで、特定の部屋の埋まり具合だけを見られます。</li>
+        <li>「空き」と表示される枠は、<strong>トレーナーと部屋の両方が空いている</strong>枠です。どちらかが埋まっていれば会員には表示されません。</li>
+        <li>部屋の追加・名前の変更は「設定」タブの「部屋(スタジオ)」から行えます。</li>
+      </ul>
       <h3>会員を追加する / プランを変える</h3>
       <ul>
         <li>「会員」タブ →「会員を登録」。体験のみの方も登録できます。</li>
@@ -1330,7 +1372,7 @@
   <div style="margin-top:14px;">
     <div class="kv"><span class="k">日時</span><span class="v" id="cfDate">7/29(火) 14:00 - 15:00</span></div>
     <div class="kv"><span class="k">トレーナー</span><span class="v" id="cfTr">佐々木 健</span></div>
-    <div class="kv"><span class="k">場所</span><span class="v">スタジオA</span></div>
+    <div class="kv"><span class="k">部屋</span><span class="v" id="cfRoom">スタジオA</span></div>
     <div class="kv"><span class="k">お支払い</span><span class="v" id="cfPay">月8回プランの消化(残5回)</span></div>
   </div>
   <div class="policy">
@@ -1387,6 +1429,7 @@
   <p class="muted">電話・店頭で受けた予約を登録します。記録には「代理登録」と担当者名が残ります。</p>
   <div class="field"><label>会員</label><select><option>山口 彩</option><option>大西 亮太</option><option>田島 智之</option><option>桜井 みなみ</option></select></div>
   <div class="field"><label>日時</label><input value="2026-07-30 11:00"></div>
+  <div class="field"><label>部屋</label><select><option>自動割当(空いている部屋)</option><option>スタジオA</option><option>スタジオB</option></select></div>
   <div class="field"><label>お支払い</label><select><option>プランを消化</option><option>回数券を消化</option><option>都度払い(現地)</option><option>都度払い(請求リンクを送る)</option></select></div>
   <div class="field"><label>メモ(任意)</label><textarea placeholder="例: お子さんの都合で急遽の変更。次回も同時間帯を希望。"></textarea></div>
   <button class="btn block" onclick="closeAll()">登録する</button>
@@ -1512,7 +1555,7 @@ gateInit();
 /* ------------------------------------------------------------------
    モック用の最小限のふるまい。本番実装とは無関係(使い捨て)。
    ------------------------------------------------------------------ */
-const sel = { tr: '佐々木 健', date: '7/29(火)', time: null, pay: '月8回プランの消化(残5回)' };
+const sel = { tr: '佐々木 健', date: '7/29(火)', time: null, room: 'スタジオA', pay: '月8回プランの消化(残5回)' };
 
 function switchApp(which) {
   document.getElementById('app-member').classList.toggle('on', which === 'member');
@@ -1534,23 +1577,41 @@ function goA(id) {
 }
 
 function pick(el, groupId, key) {
+  if (el.classList.contains('x')) return;
   const group = document.getElementById(groupId);
   group.querySelectorAll('.chip, .date, .slot').forEach(c => c.classList.remove('on'));
   el.classList.add('on');
   if (key === 'tr')   sel.tr = el.dataset.tr;
   if (key === 'date') sel.date = el.dataset.d;
-  if (key === 'time') sel.time = el.dataset.t;
+  if (key === 'time') { sel.time = el.dataset.t; updateRooms(el.classList.contains('few')); }
+  if (key === 'room') sel.room = el.dataset.rm;
   if (key === 'pay')  sel.pay = el.dataset.p;
   updateSummary();
+}
+
+/* 「残1」の時間帯 = 空いている部屋が1つだけ → スタジオBを選択不可にする(モックの決め) */
+function updateRooms(fewOnly) {
+  const b = document.querySelector('#roomChips .chip[data-rm="スタジオB"]');
+  const a = document.querySelector('#roomChips .chip[data-rm="スタジオA"]');
+  b.classList.toggle('x', fewOnly);
+  document.getElementById('roomHint').textContent = fewOnly
+    ? 'この時間はスタジオAのみ空いています。'
+    : '選んだ日時で空いている部屋だけ選べます。';
+  if (fewOnly && sel.room === 'スタジオB') {
+    b.classList.remove('on');
+    a.classList.add('on');
+    sel.room = 'スタジオA';
+  }
 }
 
 function updateSummary() {
   const s = document.getElementById('bookSummary');
   s.textContent = sel.time
-    ? `${sel.tr} / ${sel.date} / ${sel.time}`
+    ? `${sel.tr} / ${sel.date} / ${sel.time} / ${sel.room}`
     : `${sel.tr} / ${sel.date} / 時間を選んでください`;
   document.getElementById('cfDate').textContent = sel.time ? `${sel.date} ${sel.time}` : sel.date;
   document.getElementById('cfTr').textContent = sel.tr;
+  document.getElementById('cfRoom').textContent = sel.room;
   document.getElementById('cfPay').textContent = sel.pay;
 }
 
@@ -1572,7 +1633,7 @@ function closeAll() {
 }
 
 function doBook() {
-  document.getElementById('doneMsg').textContent = `${sel.date} ${sel.time} / ${sel.tr}`;
+  document.getElementById('doneMsg').textContent = `${sel.date} ${sel.time} / ${sel.tr} / ${sel.room}`;
   closeAll();
   document.getElementById('veil').classList.add('on');
   document.getElementById('sheetDone').classList.add('on');
@@ -1971,6 +2032,16 @@ function buildNutrition(sess) {
       <div class="todo-note">誰の監修で出すか(トレーナー / 管理栄養士)、持病・アレルギー情報を会員から預かるか、個別の栄養指導と切り分けた表現にするかが未確定。→ ヒアリングC-4</div>
     </div>`;
 })();
+
+/* オートロック解錠(モックでは実際の施錠システムには繋がらない) */
+function doUnlock() {
+  const b = document.getElementById('unlockBtn');
+  b.disabled = true; b.textContent = '解錠しています…';
+  setTimeout(() => {
+    b.disabled = false; b.innerHTML = '🔓 入口を解錠する';
+    showToast('解錠しました。お気をつけてお入りください');
+  }, 900);
+}
 
 function showToast(msg) {
   const t = document.getElementById('toast');
