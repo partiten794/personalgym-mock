@@ -162,6 +162,40 @@
   .next .with { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
   .next .acts { display: flex; gap: 10px; margin-top: 16px; }
 
+  /* 入口解錠ボタン(予約時間が来たときだけ出る特別な導線なので、通常のbtnより一段リッチに)
+     色の意味は守る: 解錠=主要導線なので clay、完了の瞬間だけ sage */
+  .unlock-btn {
+    position: relative; overflow: hidden; width: 100%; min-height: 62px;
+    border: none; border-radius: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: linear-gradient(135deg, #CD7856 0%, var(--clay) 45%, var(--clay-deep) 100%);
+    color: #fff; font-size: 16.5px; font-weight: 700; letter-spacing: .05em;
+    box-shadow: 0 8px 22px rgba(192,103,74,.38), inset 0 1px 0 rgba(255,255,255,.22);
+    transition: transform .16s cubic-bezier(.2,.7,.3,1), box-shadow .25s ease, background .3s ease;
+  }
+  .unlock-btn:active { transform: scale(.97); }
+  .unlock-btn::after {                              /* ゆっくり流れる光沢 */
+    content: ""; position: absolute; top: -20%; bottom: -20%; width: 34%; left: -50%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,.28), transparent);
+    transform: skewX(-12deg); animation: sheen 3.6s ease-in-out infinite; pointer-events: none;
+  }
+  @keyframes sheen { 0%, 55% { left: -50%; } 100% { left: 130%; } }
+  .unlock-btn .lk { flex: 0 0 auto; }
+  .unlock-btn .lk .shackle {
+    transform-box: view-box; transform-origin: 8px 10px;
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+  }
+  .unlock-btn.busy { animation: unlockpulse 1s ease-in-out infinite; }
+  .unlock-btn.busy::after { animation-duration: 1.1s; }
+  @keyframes unlockpulse {
+    50% { box-shadow: 0 8px 30px rgba(192,103,74,.62), inset 0 1px 0 rgba(255,255,255,.22); }
+  }
+  .unlock-btn.open {
+    background: linear-gradient(135deg, #8CA07F 0%, var(--sage) 60%, #66795C 100%);
+    box-shadow: 0 8px 22px rgba(124,144,112,.42), inset 0 1px 0 rgba(255,255,255,.22);
+  }
+  .unlock-btn.open .lk .shackle { transform: rotate(-30deg); }   /* 鍵が開く */
+
   .meter { height: 8px; background: #EFE9DF; border-radius: 6px; overflow: hidden; margin: 8px 0 6px; }
   .meter > i { display: block; height: 100%; background: var(--sage); }
 
@@ -522,7 +556,14 @@
       <div class="when" style="margin-top:8px;">8月2日(土)10:00</div>
       <div class="with">担当: 佐々木トレーナー / 60分 / スタジオA</div>
       <div class="todo" style="margin-top:14px;">
-        <button class="btn block" id="unlockBtn" onclick="doUnlock()">🔓 入口を解錠する</button>
+        <button class="unlock-btn" id="unlockBtn" onclick="doUnlock()">
+          <svg class="lk" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path class="shackle" d="M8 10V7a4 4 0 0 1 8 0v3"/>
+            <rect x="5" y="10" width="14" height="10" rx="2.5"/>
+            <circle cx="12" cy="15.2" r="1.7" fill="currentColor" stroke="none"/>
+          </svg>
+          <span id="unlockLabel">入口を解錠する</span>
+        </button>
         <div class="muted" style="margin-top:8px;text-align:center;">開始10分前から終了時刻まで表示されます(デモのため常時表示)</div>
         <div class="todo-note">機種はSwitchBot想定で確定(2026-07-30)。解錠できる時間帯(開始何分前から)・退室時の施錠・体験の方の扱い・障害/電池切れ時の代替(キーパッド等)が未確定。→ ヒアリングD-15</div>
       </div>
@@ -2033,13 +2074,23 @@ function buildNutrition(sess) {
     </div>`;
 })();
 
-/* オートロック解錠(モックでは実際の施錠システムには繋がらない) */
+/* オートロック解錠(モックでは実際の施錠システムには繋がらない)
+   待機 → busy(脈動) → open(鍵が開く+sageに変化) → 2.6秒後に待機へ戻る */
 function doUnlock() {
   const b = document.getElementById('unlockBtn');
-  b.disabled = true; b.textContent = '解錠しています…';
+  const lbl = document.getElementById('unlockLabel');
+  if (b.classList.contains('busy') || b.classList.contains('open')) return;
+  b.classList.add('busy');
+  lbl.textContent = '解錠しています…';
   setTimeout(() => {
-    b.disabled = false; b.innerHTML = '🔓 入口を解錠する';
+    b.classList.remove('busy');
+    b.classList.add('open');
+    lbl.textContent = '解錠しました';
     showToast('解錠しました。お気をつけてお入りください');
+    setTimeout(() => {
+      b.classList.remove('open');
+      lbl.textContent = '入口を解錠する';
+    }, 2600);
   }, 900);
 }
 
