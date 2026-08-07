@@ -318,6 +318,19 @@
   .cell.open { color: var(--sage); text-align: center; font-size: 10.5px; }
   .scrollx { overflow-x: auto; padding-bottom: 6px; }
 
+  /* 日表示(縦=スタッフ、横=時間)。セルの見た目は週表示と共通(.cell) */
+  .dg { display: grid; grid-template-columns: 128px repeat(11, minmax(82px, 1fr)); gap: 4px; font-size: 12px; min-width: 1080px; }
+  .dg .hd { text-align: center; font-weight: 700; padding: 6px 0; font-size: 12px; }
+  .dg .stf { display: flex; flex-direction: column; justify-content: center; padding: 6px 10px; }
+  .dg .stf .n { font-weight: 700; font-size: 13px; }
+  .dg .stf .s { font-size: 10.5px; color: var(--ink-soft); }
+
+  /* トグルスイッチ(LINE自動配信ルールのON/OFF) */
+  .sw { position: relative; width: 42px; height: 24px; border-radius: 14px; background: #DED7CB; border: none; cursor: pointer; flex: 0 0 auto; transition: background .2s ease; }
+  .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: left .2s ease; box-shadow: 0 1px 3px rgba(27,26,24,.2); }
+  .sw.on { background: var(--sage); }
+  .sw.on::after { left: 21px; }
+
   /* テーブル(管理: 密度はAに寄せる) */
   table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   th { text-align: left; font-size: 11.5px; color: var(--ink-soft); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
@@ -604,7 +617,19 @@
     <div class="head"><div><div class="kicker">RESERVE</div><h1>予約する</h1></div></div>
 
     <div class="card">
-      <h2><span class="dot"></span>1. トレーナーを選ぶ</h2>
+      <h2><span class="dot"></span>1. 店舗を選ぶ</h2>
+      <div class="chips" id="storeChips">
+        <div class="chip on" data-st="藤野本店" onclick="pick(this,'storeChips','store')">藤野本店<span class="sub">所属店</span></div>
+        <div class="chip" data-st="相模湖駅前店" onclick="pick(this,'storeChips','store')">相模湖駅前店<span class="sub">全店プランで利用可</span></div>
+      </div>
+      <div class="todo">
+        <div class="muted" style="margin-top:10px;">月8回プランは全店舗でご利用いただけます(所属店のみのプランでは所属店だけが表示されます)。</div>
+        <div class="todo-note">他店利用をプランで許可する形か、オプション料金にするかが未確定。→ ヒアリングE-16</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>2. トレーナーを選ぶ</h2>
       <div class="chips" id="trainerChips">
         <div class="chip on" data-tr="佐々木" onclick="pick(this,'trainerChips','tr')">佐々木 健<span class="sub">担当</span></div>
         <div class="chip" data-tr="三浦" onclick="pick(this,'trainerChips','tr')">三浦 悠</div>
@@ -613,7 +638,7 @@
     </div>
 
     <div class="card">
-      <h2><span class="dot"></span>2. 日付を選ぶ</h2>
+      <h2><span class="dot"></span>3. 日付を選ぶ</h2>
       <div class="dates" id="dateChips">
         <div class="date" data-d="7/28(月)" onclick="pick(this,'dateChips','date')"><div class="dow">月</div><div class="d">28</div><div class="n">空3</div></div>
         <div class="date on" data-d="7/29(火)" onclick="pick(this,'dateChips','date')"><div class="dow">火</div><div class="d">29</div><div class="n">空5</div></div>
@@ -630,7 +655,7 @@
     </div>
 
     <div class="card">
-      <h2><span class="dot"></span>3. 時間を選ぶ</h2>
+      <h2><span class="dot"></span>4. 時間を選ぶ</h2>
       <div class="slots" id="slotChips">
         <div class="slot" data-t="09:00" onclick="pick(this,'slotChips','time')"><div class="t">09:00</div><div class="s">空き</div></div>
         <div class="slot x"><div class="t">10:00</div><div class="s">×</div></div>
@@ -642,10 +667,14 @@
         <div class="slot few" data-t="19:00" onclick="pick(this,'slotChips','time')"><div class="t">19:00</div><div class="s">残1</div></div>
         <div class="slot x"><div class="t">20:00</div><div class="s">×</div></div>
       </div>
+      <div class="todo">
+        <div class="muted" style="margin-top:10px;">「×」は、トレーナー・部屋・同じ時間の利用組数の上限(現在2組まで)のいずれかが埋まっている時間です。</div>
+        <div class="todo-note">同時利用の上限の考え方(部屋数由来か・人数由来か、セミパーソナル時の定員)が未確定。→ ヒアリングB-8</div>
+      </div>
     </div>
 
     <div class="card">
-      <h2><span class="dot"></span>4. 部屋を選ぶ</h2>
+      <h2><span class="dot"></span>5. 部屋を選ぶ</h2>
       <div class="chips" id="roomChips">
         <div class="chip on" data-rm="スタジオA" onclick="pick(this,'roomChips','room')">スタジオA<span class="sub">マシン中心</span></div>
         <div class="chip" data-rm="スタジオB" onclick="pick(this,'roomChips','room')">スタジオB<span class="sub">フリーウェイト・ストレッチ</span></div>
@@ -713,6 +742,7 @@
     <div class="card">
       <h2><span class="dot"></span>ご契約中のプラン</h2>
       <div class="kv"><span class="k">プラン</span><span class="v">月8回プラン</span></div>
+      <div class="kv"><span class="k">利用できる店舗</span><span class="v">全店舗(藤野本店・相模湖駅前店)</span></div>
       <div class="kv"><span class="k">月額</span><span class="v">¥52,800(税込)</span></div>
       <div class="kv"><span class="k">次回請求日</span><span class="v">2026-08-01</span></div>
       <div class="kv"><span class="k">支払い方法</span><span class="v">VISA •••• 4242</span></div>
@@ -793,11 +823,18 @@
       <h3>予約する</h3>
       <ol>
         <li>下の「予約」を押します。</li>
-        <li>トレーナー → 日付 → 時間 → 部屋の順に選びます(選ぶたびに空き状況が更新されます)。</li>
-        <li>部屋は<strong>その日時に空いているものだけ</strong>選べます。「残1」の時間帯は部屋が1つしか空いていないため、選択肢も1つになります。</li>
+        <li>店舗 → トレーナー → 日付 → 時間 → 部屋の順に選びます(選ぶたびに空き状況が更新されます)。</li>
+        <li>店舗は、プランが「全店舗」対応の方だけ選べます(所属店のみのプランでは所属店が表示されます)。</li>
+        <li>部屋は<strong>その日時に空いているものだけ</strong>選べます。「残1」の時間帯は部屋が1つしか空いていないため、選択肢も1つになります。「×」の時間は、トレーナー・部屋・同じ時間の利用組数の上限のいずれかが埋まっています。</li>
         <li>お支払い方法を確認し、「この内容で予約する」を押します。</li>
-        <li>確認画面で内容を見て「予約を確定する」を押すと完了です。登録のメールアドレスに確認メールが届きます。</li>
+        <li>確認画面で内容を見て「予約を確定する」を押すと完了です。予約確認がLINE(未連携の方はメール)に届きます。</li>
       </ol>
+      <h3>お知らせ・通知(LINE)</h3>
+      <ul>
+        <li>予約確認・前日リマインドなどの通知は、ジムの<strong>LINE公式アカウント</strong>から届きます。</li>
+        <li>初回ログイン時にLINEで連携すると設定は完了です。連携しない場合はメールで届きます。</li>
+        <li>臨時休業などのお知らせもLINEで配信されます。</li>
+      </ul>
       <h3>入店する(オートロックの解錠)</h3>
       <ul>
         <li>予約の開始10分前になると、ホームの「次回のご予約」に<strong>「入口を解錠する」ボタン</strong>が表示されます。</li>
@@ -846,7 +883,12 @@
 <div class="desk">
   <div class="head">
     <div><div class="kicker">STUDIO DEMO / ADMIN</div><h1>管理画面</h1></div>
-    <div class="who">佐々木 健(トレーナー)<br>2026-07-27(月)</div>
+    <div class="who">
+      <select class="btn sm ghost" style="padding:6px 12px;margin-bottom:4px;" onchange="storeChange(this)">
+        <option>🏠 藤野本店</option><option>相模湖駅前店</option><option>全店舗を見る</option>
+      </select><br>
+      佐々木 健(トレーナー)・2026-07-27(月)
+    </div>
   </div>
 
   <div class="toptabs">
@@ -855,6 +897,8 @@
     <button data-v="a-members" onclick="goA('a-members')">会員</button>
     <button data-v="a-sales" onclick="goA('a-sales')">売上・決済</button>
     <button data-v="a-bi" onclick="goA('a-bi')">経営分析</button>
+    <button data-v="a-stores" onclick="goA('a-stores')">全店舗</button>
+    <button data-v="a-line" onclick="goA('a-line')">LINE連携</button>
     <button data-v="a-settings" onclick="goA('a-settings')">設定</button>
     <button data-v="a-manual" onclick="goA('a-manual')">管理マニュアル</button>
   </div>
@@ -900,6 +944,70 @@
   <!-- ---------- 予約管理 ---------- -->
   <section class="view" id="a-cal">
     <div class="row between" style="margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+      <div class="row" style="gap:6px;">
+        <button class="btn sm" id="calDayBtn" onclick="calMode('day')">日(スタッフ×時間)</button>
+        <button class="btn sm ghost" id="calWeekBtn" onclick="calMode('week')">週</button>
+      </div>
+      <button class="btn sm" onclick="openSheet('sheetProxy')">代理で予約を入れる</button>
+    </div>
+
+    <!-- 日表示: 縦=スタッフ、横=時間 -->
+    <div class="card" id="cal-day">
+      <div class="row between" style="margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+        <div class="row" style="gap:8px;">
+          <button class="btn sm ghost">◀ 前日</button>
+          <strong>2026年7月31日(木)</strong>
+          <button class="btn sm ghost">翌日 ▶</button>
+        </div>
+        <select class="btn sm ghost" style="padding:8px 14px;"><option>全部屋</option><option>スタジオA</option><option>スタジオB</option></select>
+      </div>
+      <div class="scrollx">
+      <div class="dg">
+        <div></div>
+        <div class="hd">09:00</div><div class="hd">10:00</div><div class="hd">11:00</div><div class="hd">12-13</div>
+        <div class="hd">14:00</div><div class="hd">15:00</div><div class="hd">16:00</div><div class="hd">17:00</div>
+        <div class="hd">18:00</div><div class="hd">19:00</div><div class="hd">20:00</div>
+
+        <div class="stf"><div class="n">佐々木 健</div><div class="s">出勤 09:00 - 21:00</div></div>
+        <div class="cell booked"><div class="nm">大西 亮太</div><div class="tr">回数券・B</div></div>
+        <div class="cell booked"><div class="nm">中原 さくら</div><div class="tr">体験・B</div></div>
+        <div class="cell booked"><div class="nm">久保 直人</div><div class="tr">プラン・A</div></div>
+        <div class="cell closed">休憩</div>
+        <div class="cell booked"><div class="nm">山口 彩</div><div class="tr">プラン・A</div></div>
+        <div class="cell open">空き</div>
+        <div class="cell open">空き</div>
+        <div class="cell open">空き</div>
+        <div class="cell open">空き</div>
+        <div class="cell open">空き</div>
+        <div class="cell closed">非公開</div>
+
+        <div class="stf"><div class="n">三浦 悠</div><div class="s">出勤 14:00 - 21:00</div></div>
+        <div class="cell closed">勤務外</div>
+        <div class="cell closed">勤務外</div>
+        <div class="cell closed">勤務外</div>
+        <div class="cell closed">勤務外</div>
+        <div class="cell booked"><div class="nm">桜井 みなみ</div><div class="tr">都度・B</div></div>
+        <div class="cell open">空き</div>
+        <div class="cell open">空き</div>
+        <div class="cell open">空き</div>
+        <div class="cell booked"><div class="nm">田島 智之</div><div class="tr">都度・A</div></div>
+        <div class="cell open">空き</div>
+        <div class="cell open">空き</div>
+      </div>
+      </div>
+      <div class="row" style="gap:14px;margin-top:14px;flex-wrap:wrap;">
+        <span class="muted">セルをクリック: 予約詳細 / 代理予約 / 空き枠を非公開にする。「・A / ・B」は使用する部屋</span>
+        <span class="badge clay">予約済</span><span class="badge sage">空き(公開)</span><span class="badge ember">非公開・休憩・勤務外</span>
+      </div>
+      <div class="todo" style="margin-top:12px;">
+        <div class="muted">同じ時間帯の予約は部屋が重ならないように入ります(例: 14:00 は山口さん=A・桜井さん=B)。同時利用の上限(設定: 2組)に達した時間帯は、会員側には「×」と表示されます。</div>
+        <div class="todo-note">日表示を既定にするか週表示を既定にするか、現場の使い方で決める。→ モックレビューで確認</div>
+      </div>
+    </div>
+
+    <!-- 週表示 -->
+    <div class="card" id="cal-week" style="display:none;">
+    <div class="row between" style="margin-bottom:12px;flex-wrap:wrap;gap:10px;">
       <div class="row" style="gap:8px;">
         <button class="btn sm ghost">◀ 前週</button>
         <strong>2026年7月28日 - 8月3日</strong>
@@ -908,11 +1016,8 @@
       <div class="row" style="gap:8px;">
         <select class="btn sm ghost" style="padding:8px 14px;"><option>佐々木 健</option><option>三浦 悠</option><option>全トレーナー</option></select>
         <select class="btn sm ghost" style="padding:8px 14px;"><option>全部屋</option><option>スタジオA</option><option>スタジオB</option></select>
-        <button class="btn sm" onclick="openSheet('sheetProxy')">代理で予約を入れる</button>
       </div>
     </div>
-
-    <div class="card">
       <div class="scrollx">
       <div class="wk">
         <div></div>
@@ -1057,17 +1162,24 @@
     </div>
 
     <div class="card">
-      <h2><span class="dot"></span>売上の内訳(7月)</h2>
+      <div class="row between" style="margin-bottom:8px;flex-wrap:wrap;gap:10px;">
+        <h2 style="margin-bottom:0;"><span class="dot"></span>売上の内訳(7月)</h2>
+        <button class="btn sm" onclick="openSheet('sheetPos')">店頭払いを記録</button>
+      </div>
       <table>
         <thead><tr><th>種別</th><th class="num">件数</th><th class="num">金額</th><th>決済手段</th></tr></thead>
         <tbody>
           <tr><td>月会費(サブスク)</td><td class="num">18</td><td class="num">¥475,200</td><td>カード自動</td></tr>
           <tr><td>回数券</td><td class="num">2</td><td class="num">¥98,000</td><td>カード</td></tr>
-          <tr><td>都度払い</td><td class="num">4</td><td class="num">¥35,200</td><td>カード3 / 現金1</td></tr>
-          <tr><td>オプション(体組成測定)</td><td class="num">4</td><td class="num">¥4,400</td><td>現地払い</td></tr>
+          <tr><td>都度払い</td><td class="num">4</td><td class="num">¥35,200</td><td>カード3 / 店頭1(現金)</td></tr>
+          <tr><td>オプション(体組成測定)</td><td class="num">4</td><td class="num">¥4,400</td><td>店頭(現金2・Airペイ2)</td></tr>
           <tr><td><strong>合計</strong></td><td class="num"><strong>28</strong></td><td class="num"><strong>¥612,800</strong></td><td>—</td></tr>
         </tbody>
       </table>
+      <div class="todo" style="margin-top:12px;">
+        <div class="muted">現金・Airペイなどレジ前でのお支払いは「店頭払いを記録」から入力すると、ここに合算されます。</div>
+        <div class="todo-note">Airペイ等の決済端末は取引データの自動連携ができない前提(手入力で記録し、日次で端末側の売上と突合する運用)。端末の種類と締めの手順を確認する。→ ヒアリングA-3a</div>
+      </div>
     </div>
 
     <div class="card">
@@ -1075,7 +1187,7 @@
       <table>
         <thead><tr><th>会員</th><th>内容</th><th class="num">金額</th><th>状態</th><th></th></tr></thead>
         <tbody>
-          <tr><td>田島 智之</td><td>都度払い(07-20 実施分)</td><td class="num">¥8,800</td><td><span class="badge rose">未収</span></td><td><button class="btn sm ghost">請求リンクを送る</button></td></tr>
+          <tr id="arTajima"><td>田島 智之</td><td>都度払い(07-20 実施分)</td><td class="num">¥8,800</td><td class="ar-state"><span class="badge rose">未収</span></td><td class="ar-act"><button class="btn sm ghost">請求リンクを送る</button> <button class="btn sm ghost" onclick="openSheet('sheetPos')">店頭払いで回収</button></td></tr>
           <tr><td>森本 恵</td><td>月会費 7月分</td><td class="num">¥8,800</td><td><span class="badge ember">カード期限切れ</span></td><td><button class="btn sm ghost">再決済を依頼</button></td></tr>
         </tbody>
       </table>
@@ -1209,6 +1321,104 @@
     </div>
   </section>
 
+  <!-- ---------- 全店舗 ---------- -->
+  <section class="view" id="a-stores">
+    <div class="grid3" style="margin-bottom:18px;">
+      <div class="stat"><div class="l">全店売上(7月)</div><div class="n">¥1,010,400</div><div class="sub">前月比 +3.0%</div></div>
+      <div class="stat"><div class="l">全店在籍会員</div><div class="n">51<small>名</small></div><div class="sub">今月 入会3 / 退会2</div></div>
+      <div class="stat"><div class="l">全店未収</div><div class="n" style="color:var(--rose)">¥17,600</div><div class="sub">2件(すべて藤野本店)</div></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>店舗別の当月状況(7月)</h2>
+      <table>
+        <thead><tr><th>店舗</th><th class="num">在籍</th><th class="num">売上</th><th class="num">前月比</th><th class="num">稼働率</th><th class="num">未収</th><th>入会 / 退会</th><th></th></tr></thead>
+        <tbody>
+          <tr class="clickable" onclick="goA('a-sales')">
+            <td><strong>藤野本店</strong><br><span class="muted">トレーナー2名 / 2部屋</span></td>
+            <td class="num">28</td><td class="num">¥612,700</td><td class="num">+4.2%</td><td class="num">68%</td>
+            <td class="num" style="color:var(--rose)">¥17,600</td><td>2 / 1</td><td>→</td>
+          </tr>
+          <tr class="clickable" onclick="showToast('モック: 駅前店に切り替えます(表示データは共通です)')">
+            <td><strong>相模湖駅前店</strong><br><span class="muted">トレーナー2名 / 1部屋</span></td>
+            <td class="num">23</td><td class="num">¥397,700</td><td class="num">+1.1%</td><td class="num">61%</td>
+            <td class="num">¥0</td><td>1 / 1</td><td>→</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="muted" style="margin-top:10px;">行をクリックすると、その店舗の管理画面に切り替わります。画面右上の店舗名からも切り替えられます。</div>
+    </div>
+
+    <div class="grid2">
+      <div class="card todo">
+        <h2><span class="dot"></span>会員の店舗利用</h2>
+        <div class="muted" style="margin-bottom:10px;">会員は入会した店舗(所属店)を持ち、プランの「利用範囲」で他店も使えるかが決まります。</div>
+        <div class="kv"><span class="k">全店舗を利用できるプラン</span><span class="v">月8回プラン</span></div>
+        <div class="kv"><span class="k">所属店のみのプラン</span><span class="v">月4回・都度・体験</span></div>
+        <div class="kv"><span class="k">他店利用の実績(7月)</span><span class="v">12件</span></div>
+        <div class="muted" style="margin-top:8px;">内訳: 本店会員 → 駅前店 8件 / 駅前店会員 → 本店 4件。他店利用分の売上は所属店に計上しています(仮)。</div>
+        <div class="todo-note">他店利用時の売上の帰属(所属店か利用店か)・店舗間で料金が違う場合の扱い・他店利用をオプション課金にするかが未確定。→ ヒアリングE-16</div>
+      </div>
+      <div class="card todo">
+        <h2><span class="dot"></span>権限と見える範囲</h2>
+        <div class="kv"><span class="k">オーナー</span><span class="v">全店舗 + この一覧</span></div>
+        <div class="kv"><span class="k">トレーナー</span><span class="v">所属店のみ</span></div>
+        <div class="kv"><span class="k">兼務スタッフ</span><span class="v">勤務する店舗すべて</span></div>
+        <div class="muted" style="margin-top:8px;">スタッフのシフトは店舗ごとに持ち、兼務の場合は同じ時間に両店へ入れないように制御します。</div>
+        <div class="todo-note">トレーナーに他店の会員情報・売上をどこまで見せるか、スタッフの店舗兼務が実際にあるかが未確定。→ ヒアリング11-f・E-16</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- LINE連携 ---------- -->
+  <section class="view" id="a-line">
+    <div class="grid3" style="margin-bottom:18px;">
+      <div class="stat"><div class="l">友だち登録</div><div class="n">41<small>名</small></div><div class="sub">会員 26 + 体験・見込み 15</div></div>
+      <div class="stat"><div class="l">会員との紐付け</div><div class="n">26<small> / 28名</small></div><div class="sub">未連携2名にはメールで通知</div></div>
+      <div class="stat"><div class="l">今月の自動配信</div><div class="n">132<small>通</small></div><div class="sub">無料枠 200通 / 月</div></div>
+    </div>
+
+    <div class="card todo">
+      <h2><span class="dot"></span>連携状態</h2>
+      <div class="kv"><span class="k">LINE公式アカウント</span><span class="v">@studio-demo <span class="badge sage">連携済</span></span></div>
+      <div class="kv"><span class="k">連携方式</span><span class="v">Messaging API</span></div>
+      <div class="kv"><span class="k">会員との紐付け</span><span class="v">初回ログイン時にLINEでログイン</span></div>
+      <div class="kv"><span class="k">未連携の会員への通知</span><span class="v">メールで代替</span></div>
+      <div class="todo-note">既存の公式LINEアカウントの有無と友だち数 / 会員との紐付け方法(LINEログインを入口にするか、友だち登録+会員番号か)が未確定。→ ヒアリングD-13a</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>自動配信ルール</h2>
+      <div class="item"><div class="main"><div class="t">予約確認</div><div class="s">予約直後 / LINE(未連携はメール)</div></div><button class="sw on" onclick="togSw(this)" aria-label="予約確認の自動配信"></button></div>
+      <div class="item"><div class="main"><div class="t">前日リマインド</div><div class="s">前日18:00 / キャンセル期限もあわせて案内</div></div><button class="sw on" onclick="togSw(this)" aria-label="前日リマインドの自動配信"></button></div>
+      <div class="item"><div class="main"><div class="t">決済失敗のお知らせ</div><div class="s">失敗時すぐ / 管理者にも通知</div></div><button class="sw on" onclick="togSw(this)" aria-label="決済失敗の自動配信"></button></div>
+      <div class="item"><div class="main"><div class="t">回数券の期限案内</div><div class="s">期限30日前 / 残回数と期限を案内</div></div><button class="sw on" onclick="togSw(this)" aria-label="回数券期限の自動配信"></button></div>
+      <div class="item"><div class="main"><div class="t">体験後フォロー</div><div class="s">体験から3日後・入会手続きがない方へ</div></div><button class="sw on" onclick="togSw(this)" aria-label="体験後フォローの自動配信"></button></div>
+      <div class="item"><div class="main"><div class="t">離脱予兆フォロー</div><div class="s">最終来店から4週間・次回予約なしの方へ / 配信と同時に「フォローが必要な会員」にも表示</div></div><button class="sw on" onclick="togSw(this)" aria-label="離脱予兆フォローの自動配信"></button></div>
+      <div class="todo" style="margin-top:12px;">
+        <div class="muted">各ルールの文面はここから編集できます。スイッチで個別に止められます。</div>
+        <div class="todo-note">自動で送ってよい範囲(特に離脱フォローを自動にするか、担当者の確認を挟むか)・文面の承認者・無料枠200通を超えた場合の従量費用の扱いが未確定。→ ヒアリングD-13a</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>まとめて配信(セグメント配信)</h2>
+      <div class="field"><label>配信先</label>
+        <select>
+          <option>友だち全員(41名)</option>
+          <option>在籍会員のみ(26名)</option>
+          <option>4週間来店なしの会員(2名)</option>
+          <option>体験後・未入会の方(3名)</option>
+        </select>
+      </div>
+      <div class="field"><label>メッセージ</label><textarea placeholder="例: 8/12(水)は臨時休業です。ご予約の変更はアプリからお願いします。"></textarea></div>
+      <div class="row between" style="flex-wrap:wrap;gap:10px;">
+        <span class="muted">配信前に対象人数を確認できます。配信履歴は残ります。</span>
+        <button class="btn sm" onclick="showToast('モックのため実際には送信されません')">配信する</button>
+      </div>
+    </div>
+  </section>
+
   <!-- ---------- 設定 ---------- -->
   <section class="view" id="a-settings">
     <div class="note" style="margin-bottom:18px;">
@@ -1218,15 +1428,16 @@
     <div class="card">
       <h2><span class="dot"></span>プラン・料金マスタ</h2>
       <table>
-        <thead><tr><th>プラン名</th><th class="num">月額(税込)</th><th class="num">回数</th><th>状態</th><th></th></tr></thead>
+        <thead><tr><th>プラン名</th><th class="num">月額(税込)</th><th class="num">回数</th><th>利用範囲</th><th>状態</th><th></th></tr></thead>
         <tbody>
-          <tr><td>月8回プラン</td><td class="num">¥52,800</td><td class="num">8</td><td><span class="badge sage">有効</span></td><td><button class="btn sm ghost">編集</button></td></tr>
-          <tr><td>月4回プラン</td><td class="num">¥28,600</td><td class="num">4</td><td><span class="badge sage">有効</span></td><td><button class="btn sm ghost">編集</button></td></tr>
-          <tr><td>都度払い</td><td class="num">¥8,800</td><td class="num">1</td><td><span class="badge sage">有効</span></td><td><button class="btn sm ghost">編集</button></td></tr>
-          <tr><td>体験セッション</td><td class="num">¥3,300</td><td class="num">1</td><td><span class="badge sage">有効</span></td><td><button class="btn sm ghost">編集</button></td></tr>
+          <tr><td>月8回プラン</td><td class="num">¥52,800</td><td class="num">8</td><td><span class="badge sky">全店舗</span></td><td><span class="badge sage">有効</span></td><td><button class="btn sm ghost">編集</button></td></tr>
+          <tr><td>月4回プラン</td><td class="num">¥28,600</td><td class="num">4</td><td>所属店のみ</td><td><span class="badge sage">有効</span></td><td><button class="btn sm ghost">編集</button></td></tr>
+          <tr><td>都度払い</td><td class="num">¥8,800</td><td class="num">1</td><td>所属店のみ</td><td><span class="badge sage">有効</span></td><td><button class="btn sm ghost">編集</button></td></tr>
+          <tr><td>体験セッション</td><td class="num">¥3,300</td><td class="num">1</td><td>所属店のみ</td><td><span class="badge sage">有効</span></td><td><button class="btn sm ghost">編集</button></td></tr>
         </tbody>
       </table>
       <button class="btn sm ghost" style="margin-top:12px;">プランを追加</button>
+      <div class="muted" style="margin-top:10px;">「全店舗」のプランを持つ会員は、予約時に店舗を選べます(→ 全店舗タブ)。</div>
     </div>
 
     <div class="grid2">
@@ -1251,6 +1462,24 @@
     </div>
 
     <div class="grid2">
+      <div class="card todo">
+        <h2><span class="dot"></span>店舗</h2>
+        <div class="item"><div class="main"><div class="t">藤野本店 <span class="badge sky">この画面</span></div><div class="s">トレーナー2名 / 2部屋 / 09:00-21:00</div></div><div class="end"><span class="badge sage">営業中</span></div></div>
+        <div class="item"><div class="main"><div class="t">相模湖駅前店</div><div class="s">トレーナー2名 / 1部屋 / 10:00-22:00</div></div><div class="end"><span class="badge sage">営業中</span></div></div>
+        <button class="btn sm ghost" style="margin-top:12px;">店舗を追加</button>
+        <div class="todo-note">営業時間・料金・キャンセルポリシーを店舗ごとに変えられる必要があるかが未確定(モックは営業時間のみ店舗別)。→ ヒアリングE-16</div>
+      </div>
+      <div class="card todo">
+        <h2><span class="dot"></span>同時利用の上限</h2>
+        <div class="kv"><span class="k">同一時間帯の最大予約数</span><span class="v">2組(部屋数と同じ)</span></div>
+        <div class="kv"><span class="k">店内の同時滞在の上限</span><span class="v">3名(体験・見学を含む)</span></div>
+        <div class="kv"><span class="k">上限に達した枠</span><span class="v">会員側に「×」と表示</span></div>
+        <button class="btn sm ghost" style="margin-top:12px;">編集</button>
+        <div class="todo-note">上限の根拠(部屋数か・スタッフ数か・広さか)、セミパーソナル(1枠に複数名)を導入する場合の枠あたり定員が未確定。→ ヒアリングB-8</div>
+      </div>
+    </div>
+
+    <div class="grid2">
       <div class="card">
         <h2><span class="dot"></span>トレーナー</h2>
         <div class="item"><div class="main"><div class="t">佐々木 健</div><div class="s">月火水木金土 / 09:00-21:00</div></div><div class="end"><span class="badge sage">稼働中</span></div></div>
@@ -1266,10 +1495,12 @@
       </div>
       <div class="card todo">
         <h2><span class="dot"></span>通知</h2>
-        <div class="kv"><span class="k">予約確認</span><span class="v">メール</span></div>
-        <div class="kv"><span class="k">前日リマインド</span><span class="v">メール(前日18:00)</span></div>
-        <div class="kv"><span class="k">決済失敗</span><span class="v">メール + 管理者通知</span></div>
-        <div class="todo-note">会員がメールを見ない業態の場合、LINE公式アカウント連携が必須になる。通知チャネルの正を確定する。→ ヒアリングD-13</div>
+        <div class="kv"><span class="k">通知チャネル</span><span class="v">LINE(未連携はメール)</span></div>
+        <div class="kv"><span class="k">予約確認</span><span class="v">予約直後</span></div>
+        <div class="kv"><span class="k">前日リマインド</span><span class="v">前日18:00</span></div>
+        <div class="kv"><span class="k">決済失敗</span><span class="v">即時 + 管理者通知</span></div>
+        <div class="kv"><span class="k">自動配信ルール</span><span class="v">「LINE連携」タブで管理</span></div>
+        <div class="todo-note">通知の正をLINEに置く前提に変更(2026-08-07)。既存公式アカウントの有無・友だち数・配信通数の従量費用を確認する。→ ヒアリングD-13a</div>
       </div>
     </div>
   </section>
@@ -1294,6 +1525,37 @@
         <li>種目を足したいときは下の「＋ 種目名」から。使わない種目は右上の「×」で外せます。</li>
         <li>最後に体重・体脂肪・所感を入れて「記録して終了」。1回消化され、会員のアプリにも記録が表示されます。</li>
         <li>途中で閉じても記録は残ります(そのセッション中のみ)。</li>
+      </ul>
+      <h3>予約一覧の見方(日表示と週表示)</h3>
+      <ul>
+        <li>「予約管理」タブは<strong>日表示(縦=スタッフ、横=時間)</strong>が既定です。その日の全スタッフの動きが1画面で見えます。</li>
+        <li>週の埋まり具合を見たいときは「週」に切り替えます(トレーナー・部屋で絞り込めます)。</li>
+        <li>「勤務外」はそのスタッフのシフト外、「非公開」は会員に見せていない枠です。</li>
+      </ul>
+      <h3>店頭払い(現金・Airペイ)を記録する</h3>
+      <ol>
+        <li>決済端末(Airペイ等)やレジでの受け取りは、いつもどおり行います。</li>
+        <li>「売上・決済」タブ →「店頭払いを記録」。会員・内容・金額・支払い方法(現金 / Airペイ カード / Airペイ QR / 振込)を選んで記録します。</li>
+        <li>未収の回収も同じ画面からです。記録すると「要対応」から消え、売上の内訳に合算されます。</li>
+        <li><strong>閉店時の締め</strong>: 端末側の売上合計と、この画面の「店頭払い」合計を照合します(自動では突き合いません)。</li>
+      </ol>
+      <h3>複数店舗の切り替えと全店ダッシュボード</h3>
+      <ul>
+        <li>画面右上の店舗名から、表示する店舗を切り替えます(トレーナーは所属店のみ)。</li>
+        <li>オーナーは「全店舗」タブで、店舗ごとの売上・在籍・稼働率・未収を一覧で比較できます。行をクリックするとその店舗に切り替わります。</li>
+        <li>会員が他店を使えるかは、プランの「利用範囲」(設定タブ)で決まります。</li>
+      </ul>
+      <h3>同じ時間の利用組数を制限する</h3>
+      <ul>
+        <li>「設定」タブの「同時利用の上限」で、同一時間帯の最大予約数と店内の同時滞在上限を決められます。</li>
+        <li>上限に達した時間帯は、会員の予約画面に自動で「×」と表示されます。</li>
+      </ul>
+      <h3>LINEの配信を管理する</h3>
+      <ul>
+        <li>「LINE連携」タブで、自動配信ルール(予約確認・前日リマインド・体験後フォロー・離脱予兆フォローなど)を個別にON/OFFできます。</li>
+        <li>離脱予兆フォローは、最終来店から4週間・次回予約なしの会員に自動で届き、「フォローが必要な会員」にも同時に表示されます。</li>
+        <li>臨時休業などのお知らせは「まとめて配信」から。配信先(全員 / 在籍会員 / 来店が空いている方 など)を選ぶと対象人数が表示されます。</li>
+        <li>LINE未連携の会員には、同じ内容がメールで届きます。</li>
       </ul>
       <h3>電話で予約・変更を受けたとき</h3>
       <ol>
@@ -1411,6 +1673,7 @@
   <h3>予約の確認</h3>
   <p class="muted">内容をご確認ください。</p>
   <div style="margin-top:14px;">
+    <div class="kv"><span class="k">店舗</span><span class="v" id="cfStore">藤野本店</span></div>
     <div class="kv"><span class="k">日時</span><span class="v" id="cfDate">7/29(火) 14:00 - 15:00</span></div>
     <div class="kv"><span class="k">トレーナー</span><span class="v" id="cfTr">佐々木 健</span></div>
     <div class="kv"><span class="k">部屋</span><span class="v" id="cfRoom">スタジオA</span></div>
@@ -1474,6 +1737,33 @@
   <div class="field"><label>お支払い</label><select><option>プランを消化</option><option>回数券を消化</option><option>都度払い(現地)</option><option>都度払い(請求リンクを送る)</option></select></div>
   <div class="field"><label>メモ(任意)</label><textarea placeholder="例: お子さんの都合で急遽の変更。次回も同時間帯を希望。"></textarea></div>
   <button class="btn block" onclick="closeAll()">登録する</button>
+</div>
+
+<div class="sheet" id="sheetPos">
+  <div class="grip"></div>
+  <h3>店頭払いを記録する</h3>
+  <p class="muted">現金・Airペイなど、レジ前でのお支払いを記録します。決済端末側の操作は通常どおり行ってください。</p>
+  <div class="field" style="margin-top:12px;"><label>会員</label>
+    <select id="posMember"><option>田島 智之</option><option>山口 彩</option><option>大西 亮太</option><option>桜井 みなみ</option><option>久保 直人</option><option>中原 さくら(体験)</option></select>
+  </div>
+  <div class="field"><label>内容</label>
+    <select><option>未収の回収(07-20 実施分 ¥8,800)</option><option>都度払い(本日実施分)</option><option>回数券の購入</option><option>オプション(体組成測定)</option><option>物販・その他</option></select>
+  </div>
+  <div class="field"><label>金額(税込)</label><input id="posAmount" inputmode="numeric" value="8,800"></div>
+  <div class="field"><label>支払い方法</label>
+    <div class="chips" id="posChips">
+      <div class="chip on" data-pm="現金" onclick="pickPos(this)">現金</div>
+      <div class="chip" data-pm="Airペイ(カード)" onclick="pickPos(this)">Airペイ(カード)</div>
+      <div class="chip" data-pm="Airペイ(QR)" onclick="pickPos(this)">Airペイ(QR・電子マネー)</div>
+      <div class="chip" data-pm="銀行振込" onclick="pickPos(this)">銀行振込</div>
+    </div>
+  </div>
+  <div class="policy">Airペイ側の売上とこの記録は自動では突き合いません。閉店時に端末側の合計とこの画面の「店頭払い」合計を照合してください(→ 管理マニュアル「閉店時の締め」)。</div>
+  <div class="todo">
+    <div class="todo-note">決済端末の種類(Airペイ / Square / STORES等)と手数料、現金の日次締めの現在のやり方、記録の訂正権限が未確定。→ ヒアリングA-3a</div>
+  </div>
+  <button class="btn block" onclick="doPos()">記録する</button>
+  <button class="btn ghost block" style="margin-top:10px;" onclick="closeAll()">やめる</button>
 </div>
 
 <div class="drawer" id="drawer">
@@ -1596,7 +1886,7 @@ gateInit();
 /* ------------------------------------------------------------------
    モック用の最小限のふるまい。本番実装とは無関係(使い捨て)。
    ------------------------------------------------------------------ */
-const sel = { tr: '佐々木 健', date: '7/29(火)', time: null, room: 'スタジオA', pay: '月8回プランの消化(残5回)' };
+const sel = { store: '藤野本店', tr: '佐々木 健', date: '7/29(火)', time: null, room: 'スタジオA', pay: '月8回プランの消化(残5回)' };
 
 function switchApp(which) {
   document.getElementById('app-member').classList.toggle('on', which === 'member');
@@ -1622,6 +1912,7 @@ function pick(el, groupId, key) {
   const group = document.getElementById(groupId);
   group.querySelectorAll('.chip, .date, .slot').forEach(c => c.classList.remove('on'));
   el.classList.add('on');
+  if (key === 'store') sel.store = el.dataset.st;
   if (key === 'tr')   sel.tr = el.dataset.tr;
   if (key === 'date') sel.date = el.dataset.d;
   if (key === 'time') { sel.time = el.dataset.t; updateRooms(el.classList.contains('few')); }
@@ -1650,6 +1941,7 @@ function updateSummary() {
   s.textContent = sel.time
     ? `${sel.tr} / ${sel.date} / ${sel.time} / ${sel.room}`
     : `${sel.tr} / ${sel.date} / 時間を選んでください`;
+  document.getElementById('cfStore').textContent = sel.store;
   document.getElementById('cfDate').textContent = sel.time ? `${sel.date} ${sel.time}` : sel.date;
   document.getElementById('cfTr').textContent = sel.tr;
   document.getElementById('cfRoom').textContent = sel.room;
@@ -1699,6 +1991,50 @@ function segTo(btn, id) {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
 updateSummary();
+
+/* 予約管理: 日表示(スタッフ×時間)と週表示の切り替え */
+function calMode(mode) {
+  const day = mode === 'day';
+  document.getElementById('cal-day').style.display  = day ? '' : 'none';
+  document.getElementById('cal-week').style.display = day ? 'none' : '';
+  document.getElementById('calDayBtn').classList.toggle('ghost', !day);
+  document.getElementById('calWeekBtn').classList.toggle('ghost', day);
+}
+
+/* 店舗の切り替え(モックでは表示データは共通) */
+function storeChange(el) {
+  if (el.value === '全店舗を見る') {
+    el.selectedIndex = 0;
+    goA('a-stores');
+    return;
+  }
+  showToast(`${el.value} に切り替えました(モックのため表示データは共通です)`);
+}
+
+/* 店頭払いの記録 */
+let posMethod = '現金';
+function pickPos(el) {
+  document.querySelectorAll('#posChips .chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  posMethod = el.dataset.pm;
+}
+function doPos() {
+  const member = document.getElementById('posMember').value;
+  const amount = document.getElementById('posAmount').value;
+  // 未収だった田島さんを回収済にする(デモのふるまい)
+  if (member === '田島 智之') {
+    const row = document.getElementById('arTajima');
+    if (row) {
+      row.querySelector('.ar-state').innerHTML = `<span class="badge sage">回収済(${posMethod})</span>`;
+      row.querySelector('.ar-act').innerHTML = '<span class="muted">本日 店頭で回収</span>';
+    }
+  }
+  closeAll();
+  showToast(`店頭払いを記録しました(${member} / ${posMethod} ¥${amount})`);
+}
+
+/* LINE自動配信ルールのON/OFF */
+function togSw(btn) { btn.classList.toggle('on'); }
 
 /* ------------------------------------------------------------------
    経営分析のグラフ描画(ライブラリなし)
