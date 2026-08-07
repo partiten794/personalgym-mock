@@ -884,10 +884,11 @@
   <div class="head">
     <div><div class="kicker">STUDIO DEMO / ADMIN</div><h1>管理画面</h1></div>
     <div class="who">
-      <select class="btn sm ghost" style="padding:6px 12px;margin-bottom:4px;" onchange="storeChange(this)">
-        <option>🏠 藤野本店</option><option>相模湖駅前店</option><option>全店舗を見る</option>
+      <select id="storeSel" class="btn sm ghost" style="padding:6px 12px;margin-bottom:4px;" onchange="storeChange(this)">
+        <option value="藤野本店">🏠 藤野本店</option><option value="相模湖駅前店">相模湖駅前店</option><option value="_all">全店舗を見る</option>
       </select><br>
-      佐々木 健(トレーナー)・2026-07-27(月)
+      佐々木 健(トレーナー)・2026-07-27(月)<br>
+      <button class="linkbtn" style="padding:2px 0;" onclick="goA('a-manual')">📖 使い方マニュアル</button>
     </div>
   </div>
 
@@ -900,12 +901,11 @@
     <button data-v="a-stores" onclick="goA('a-stores')">全店舗</button>
     <button data-v="a-line" onclick="goA('a-line')">LINE連携</button>
     <button data-v="a-settings" onclick="goA('a-settings')">設定</button>
-    <button data-v="a-manual" onclick="goA('a-manual')">管理マニュアル</button>
   </div>
 
   <!-- ---------- 本日 ---------- -->
   <section class="view on" id="a-today">
-    <div class="grid3" style="margin-bottom:18px;">
+    <div class="grid3" id="todayStats" style="margin-bottom:18px;">
       <div class="stat"><div class="l">本日の予約</div><div class="n">6<small>件</small></div><div class="sub">実施済 2 / 残り 4</div></div>
       <div class="stat"><div class="l">本日の売上(見込)</div><div class="n">¥26,400</div><div class="sub">都度払い 3件</div></div>
       <div class="stat"><div class="l">未収</div><div class="n" style="color:var(--rose)">2<small>件</small></div><div class="sub">¥17,600 — 要対応</div></div>
@@ -913,7 +913,7 @@
 
     <div class="card">
       <h2><span class="dot"></span>本日のスケジュール</h2>
-      <div class="tl"><div class="ln"></div>
+      <div class="tl" id="todayTl"><div class="ln"></div>
         <div class="tlrow done"><div class="hh">09:00</div><div class="pin"></div>
           <div class="tlcard"><div class="who"><div class="n">山口 彩 <span class="badge sky">継続12か月</span></div><div class="s">月8回プラン消化 / 60分 / スタジオA</div></div>
             <span class="badge sage">実施済</span><button class="btn sm ghost" onclick="openDrawer()">カルテ</button></div></div>
@@ -962,7 +962,7 @@
         <select class="btn sm ghost" style="padding:8px 14px;"><option>全部屋</option><option>スタジオA</option><option>スタジオB</option></select>
       </div>
       <div class="scrollx">
-      <div class="dg">
+      <div class="dg" id="dayGrid">
         <div></div>
         <div class="hd">09:00</div><div class="hd">10:00</div><div class="hd">11:00</div><div class="hd">12-13</div>
         <div class="hd">14:00</div><div class="hd">15:00</div><div class="hd">16:00</div><div class="hd">17:00</div>
@@ -1000,7 +1000,7 @@
         <span class="badge clay">予約済</span><span class="badge sage">空き(公開)</span><span class="badge ember">非公開・休憩・勤務外</span>
       </div>
       <div class="todo" style="margin-top:12px;">
-        <div class="muted">同じ時間帯の予約は部屋が重ならないように入ります(例: 14:00 は山口さん=A・桜井さん=B)。同時利用の上限(設定: 2組)に達した時間帯は、会員側には「×」と表示されます。</div>
+        <div class="muted" id="dayNote">同じ時間帯の予約は部屋が重ならないように入ります(例: 14:00 は山口さん=A・桜井さん=B)。同時利用の上限(設定: 2組)に達した時間帯は、会員側には「×」と表示されます。</div>
         <div class="todo-note">日表示を既定にするか週表示を既定にするか、現場の使い方で決める。→ モックレビューで確認</div>
       </div>
     </div>
@@ -1108,7 +1108,7 @@
         <thead><tr>
           <th>会員</th><th>プラン</th><th class="num">残回数</th><th>最終来店</th><th>次回予約</th><th>決済</th><th></th>
         </tr></thead>
-        <tbody>
+        <tbody id="memRows">
           <tr class="clickable" onclick="openDrawer()">
             <td><strong>山口 彩</strong><br><span class="muted">やまぐち あや / 34歳</span></td>
             <td>月8回</td><td class="num">5</td><td>07-26</td><td>08-02 10:00</td>
@@ -1155,7 +1155,7 @@
 
   <!-- ---------- 売上・決済 ---------- -->
   <section class="view" id="a-sales">
-    <div class="grid3" style="margin-bottom:18px;">
+    <div class="grid3" id="salesStats" style="margin-bottom:18px;">
       <div class="stat"><div class="l">当月売上(7月)</div><div class="n">¥612,700</div><div class="sub">前月比 +4.2%</div></div>
       <div class="stat"><div class="l">在籍会員</div><div class="n">28<small>名</small></div><div class="sub">今月 入会2 / 退会1</div></div>
       <div class="stat"><div class="l">未収合計</div><div class="n" style="color:var(--rose)">¥17,600</div><div class="sub">2件 — 要対応</div></div>
@@ -1168,7 +1168,7 @@
       </div>
       <table>
         <thead><tr><th>種別</th><th class="num">件数</th><th class="num">金額</th><th>決済手段</th></tr></thead>
-        <tbody>
+        <tbody id="salesBreak">
           <tr><td>月会費(サブスク)</td><td class="num">18</td><td class="num">¥475,200</td><td>カード自動</td></tr>
           <tr><td>回数券</td><td class="num">2</td><td class="num">¥98,000</td><td>カード</td></tr>
           <tr><td>都度払い</td><td class="num">4</td><td class="num">¥35,200</td><td>カード3 / 店頭1(現金)</td></tr>
@@ -1186,7 +1186,7 @@
       <h2><span class="dot"></span>要対応(未収・失敗)</h2>
       <table>
         <thead><tr><th>会員</th><th>内容</th><th class="num">金額</th><th>状態</th><th></th></tr></thead>
-        <tbody>
+        <tbody id="arRows">
           <tr id="arTajima"><td>田島 智之</td><td>都度払い(07-20 実施分)</td><td class="num">¥8,800</td><td class="ar-state"><span class="badge rose">未収</span></td><td class="ar-act"><button class="btn sm ghost">請求リンクを送る</button> <button class="btn sm ghost" onclick="openSheet('sheetPos')">店頭払いで回収</button></td></tr>
           <tr><td>森本 恵</td><td>月会費 7月分</td><td class="num">¥8,800</td><td><span class="badge ember">カード期限切れ</span></td><td><button class="btn sm ghost">再決済を依頼</button></td></tr>
         </tbody>
@@ -1203,18 +1203,18 @@
     <div class="row between" style="margin-bottom:16px;flex-wrap:wrap;gap:10px;">
       <div class="row" style="gap:8px;flex-wrap:wrap;">
         <select class="btn sm ghost" style="padding:8px 14px;"><option>直近12か月</option><option>直近6か月</option><option>今年度</option></select>
-        <select class="btn sm ghost" style="padding:8px 14px;"><option>全トレーナー</option><option>佐々木 健</option><option>三浦 悠</option></select>
+        <select class="btn sm ghost" id="biTrainerSel" style="padding:8px 14px;"><option>全トレーナー</option><option>佐々木 健</option><option>三浦 悠</option></select>
       </div>
       <button class="btn sm ghost" onclick="alert('モックのため未実装です')">CSVで書き出す</button>
     </div>
 
     <!-- 数字が主役のものはグラフにしない -->
-    <div class="grid3" style="margin-bottom:16px;">
+    <div class="grid3" id="biKpi1" style="margin-bottom:16px;">
       <div class="stat"><div class="l">月次固定収益(MRR)</div><div class="n">¥475,200</div><div class="sub">月会費18名 / 売上の77.6%</div></div>
       <div class="stat"><div class="l">会員あたり月間単価</div><div class="n">¥21,882</div><div class="sub">前月 ¥22,078(-0.9%)</div></div>
       <div class="stat"><div class="l">枠の稼働率(7月)</div><div class="n">68<small>%</small></div><div class="sub">提供 168枠 / 予約 114枠</div></div>
     </div>
-    <div class="grid3" style="margin-bottom:20px;">
+    <div class="grid3" id="biKpi2" style="margin-bottom:20px;">
       <div class="stat"><div class="l">月次継続率(12か月平均)</div><div class="n">96.2<small>%</small></div><div class="sub">解約率 3.8% / 月</div></div>
       <div class="stat"><div class="l">平均継続月数</div><div class="n">26<small>か月</small></div><div class="sub">解約率からの推計</div></div>
       <div class="stat todo"><div class="l">会員生涯価値(LTV)</div><div class="n">¥569,000</div><div class="sub">単価 × 平均継続月数</div>
@@ -1228,7 +1228,7 @@
         <h2 style="margin:0;"><span class="dot"></span>売上の推移</h2>
         <span class="cap">月次・税込 / 直近12か月</span>
       </div>
-      <div class="cap muted">直近12か月で +27.6%。6月以降は月会費の比率が上がり、変動が小さくなっています。</div>
+      <div class="cap muted" id="revCap">直近12か月で +27.6%。6月以降は月会費の比率が上がり、変動が小さくなっています。</div>
       <div class="bars" id="chartRevenue"></div>
       <div class="row between" style="margin-top:10px;">
         <span class="muted" id="revAxis"></span>
@@ -1243,7 +1243,7 @@
         <div class="chart-head"><h2 style="margin:0;"><span class="dot" style="background:var(--c-mem)"></span>在籍会員数</h2><span class="cap">各月末時点</span></div>
         <svg id="chartMembers" viewBox="0 0 340 160" style="width:100%;height:auto;margin-top:10px;" role="img" aria-label="在籍会員数の推移"></svg>
         <div class="row between" style="margin-top:6px;">
-          <span class="muted">21名 → 28名(+33%)</span>
+          <span class="muted" id="memCap">21名 → 28名(+33%)</span>
           <button class="linkbtn" onclick="toggleTable('tblMembers', this)">表で見る</button>
         </div>
         <div class="tbl-view" id="tblMembers"></div>
@@ -1256,7 +1256,7 @@
         </div>
         <div class="divg" id="chartChurn"></div>
         <div class="row between" style="margin-top:6px;">
-          <span class="muted">12か月で 入会22 / 退会14</span>
+          <span class="muted" id="churnCap">12か月で 入会22 / 退会14</span>
           <button class="linkbtn" onclick="toggleTable('tblChurn', this)">表で見る</button>
         </div>
         <div class="tbl-view" id="tblChurn"></div>
@@ -1269,7 +1269,7 @@
         <h2 style="margin:0;"><span class="dot"></span>曜日・時間帯ごとの稼働率</h2>
         <span class="cap">直近8週間の平均 / 予約された枠 ÷ 提供した枠</span>
       </div>
-      <div class="cap muted">平日夜と土曜午前が埋まりきっています。空いている平日午後をどう埋めるかが売上の伸びしろです。</div>
+      <div class="cap muted" id="heatCap">平日夜と土曜午前が埋まりきっています。空いている平日午後をどう埋めるかが売上の伸びしろです。</div>
       <div class="scrollx" style="margin-top:12px;"><div class="heat" id="chartHeat"></div></div>
       <div class="ramp"><span>低</span><span class="sw" id="rampSw"></span><span>高</span><span style="margin-left:10px;">— 網掛けは営業時間外</span></div>
       <div class="todo" style="margin-top:12px;">
@@ -1284,7 +1284,7 @@
         <h2><span class="dot"></span>トレーナー別の実績(7月)</h2>
         <table>
           <thead><tr><th>トレーナー</th><th class="num">セッション</th><th class="num">売上</th><th style="width:110px;">構成比</th></tr></thead>
-          <tbody>
+          <tbody id="trainerRows">
             <tr><td>佐々木 健</td><td class="num">118</td><td class="num">¥412,000</td>
               <td><div class="hbar"><i style="width:67%"></i></div><span class="muted">67%</span></td></tr>
             <tr><td>三浦 悠</td><td class="num">64</td><td class="num">¥200,700</td>
@@ -1292,7 +1292,7 @@
           </tbody>
         </table>
         <div class="todo" style="margin-top:12px;">
-          <div class="muted">指名率: 佐々木 72% / 三浦 28%</div>
+          <div class="muted" id="shareCap">指名率: 佐々木 72% / 三浦 28%</div>
           <div class="todo-note">売上の帰属(指名した会員の月会費を誰の売上とするか)が未確定。歩合給がある場合はここが給与計算の根拠になる。→ ヒアリングA-4</div>
         </div>
       </div>
@@ -1300,6 +1300,7 @@
       <!-- 離脱予兆(状態 = ステータス色。アイコンとラベルを伴わせ色だけに頼らない) -->
       <div class="card">
         <h2><span class="dot" style="background:var(--c-lost)"></span>フォローが必要な会員</h2>
+        <div id="followRows">
         <div class="item"><div class="main"><div class="t">森本 恵</div><div class="s">最終来店 6/30(4週間なし)/ 月8回プラン</div></div>
           <div class="end"><span class="badge rose">● 離脱の予兆</span></div></div>
         <div class="item"><div class="main"><div class="t">田島 智之</div><div class="s">未収 ¥8,800 が3週間 / 都度払い</div></div>
@@ -1308,6 +1309,7 @@
           <div class="end"><span class="badge ember">▲ 頻度低下</span></div></div>
         <div class="item"><div class="main"><div class="t">中原 さくら</div><div class="s">体験から7日経過・入会手続きなし</div></div>
           <div class="end"><span class="badge ember">▲ 体験後フォロー</span></div></div>
+        </div>
         <div class="todo" style="margin-top:10px;">
           <div class="muted">条件に当てはまった会員がここに自動で並びます。</div>
           <div class="todo-note">検知の基準(何週間で予兆とするか・誰に通知するか・フォロー済みの記録をどう残すか)が未確定。</div>
@@ -1324,7 +1326,7 @@
   <!-- ---------- 全店舗 ---------- -->
   <section class="view" id="a-stores">
     <div class="grid3" style="margin-bottom:18px;">
-      <div class="stat"><div class="l">全店売上(7月)</div><div class="n">¥1,010,400</div><div class="sub">前月比 +3.0%</div></div>
+      <div class="stat"><div class="l">全店売上(7月)</div><div class="n">¥1,012,000</div><div class="sub">前月比 +4.4%</div></div>
       <div class="stat"><div class="l">全店在籍会員</div><div class="n">51<small>名</small></div><div class="sub">今月 入会3 / 退会2</div></div>
       <div class="stat"><div class="l">全店未収</div><div class="n" style="color:var(--rose)">¥17,600</div><div class="sub">2件(すべて藤野本店)</div></div>
     </div>
@@ -1334,14 +1336,14 @@
       <table>
         <thead><tr><th>店舗</th><th class="num">在籍</th><th class="num">売上</th><th class="num">前月比</th><th class="num">稼働率</th><th class="num">未収</th><th>入会 / 退会</th><th></th></tr></thead>
         <tbody>
-          <tr class="clickable" onclick="goA('a-sales')">
+          <tr class="clickable" onclick="switchStore('藤野本店'); goA('a-sales')">
             <td><strong>藤野本店</strong><br><span class="muted">トレーナー2名 / 2部屋</span></td>
             <td class="num">28</td><td class="num">¥612,700</td><td class="num">+4.2%</td><td class="num">68%</td>
             <td class="num" style="color:var(--rose)">¥17,600</td><td>2 / 1</td><td>→</td>
           </tr>
-          <tr class="clickable" onclick="showToast('モック: 駅前店に切り替えます(表示データは共通です)')">
+          <tr class="clickable" onclick="switchStore('相模湖駅前店'); goA('a-sales')">
             <td><strong>相模湖駅前店</strong><br><span class="muted">トレーナー2名 / 1部屋</span></td>
-            <td class="num">23</td><td class="num">¥397,700</td><td class="num">+1.1%</td><td class="num">61%</td>
+            <td class="num">23</td><td class="num">¥399,300</td><td class="num">+4.6%</td><td class="num">61%</td>
             <td class="num">¥0</td><td>1 / 1</td><td>→</td>
           </tr>
         </tbody>
@@ -1443,11 +1445,13 @@
     <div class="grid2">
       <div class="card">
         <h2><span class="dot"></span>営業時間・定休日</h2>
+        <div id="setHours">
         <div class="kv"><span class="k">平日</span><span class="v">09:00 - 21:00</span></div>
         <div class="kv"><span class="k">土曜</span><span class="v">09:00 - 18:00</span></div>
         <div class="kv"><span class="k">定休日</span><span class="v">日曜・祝日</span></div>
         <div class="kv"><span class="k">1枠の長さ</span><span class="v">60分</span></div>
         <div class="kv"><span class="k">休憩帯</span><span class="v">12:00 - 14:00</span></div>
+        </div>
         <button class="btn sm ghost" style="margin-top:12px;">編集</button>
       </div>
       <div class="card todo">
@@ -1464,16 +1468,20 @@
     <div class="grid2">
       <div class="card todo">
         <h2><span class="dot"></span>店舗</h2>
+        <div id="setStores">
         <div class="item"><div class="main"><div class="t">藤野本店 <span class="badge sky">この画面</span></div><div class="s">トレーナー2名 / 2部屋 / 09:00-21:00</div></div><div class="end"><span class="badge sage">営業中</span></div></div>
         <div class="item"><div class="main"><div class="t">相模湖駅前店</div><div class="s">トレーナー2名 / 1部屋 / 10:00-22:00</div></div><div class="end"><span class="badge sage">営業中</span></div></div>
+        </div>
         <button class="btn sm ghost" style="margin-top:12px;">店舗を追加</button>
         <div class="todo-note">営業時間・料金・キャンセルポリシーを店舗ごとに変えられる必要があるかが未確定(モックは営業時間のみ店舗別)。→ ヒアリングE-16</div>
       </div>
       <div class="card todo">
         <h2><span class="dot"></span>同時利用の上限</h2>
+        <div id="setCap">
         <div class="kv"><span class="k">同一時間帯の最大予約数</span><span class="v">2組(部屋数と同じ)</span></div>
         <div class="kv"><span class="k">店内の同時滞在の上限</span><span class="v">3名(体験・見学を含む)</span></div>
         <div class="kv"><span class="k">上限に達した枠</span><span class="v">会員側に「×」と表示</span></div>
+        </div>
         <button class="btn sm ghost" style="margin-top:12px;">編集</button>
         <div class="todo-note">上限の根拠(部屋数か・スタッフ数か・広さか)、セミパーソナル(1枠に複数名)を導入する場合の枠あたり定員が未確定。→ ヒアリングB-8</div>
       </div>
@@ -1482,14 +1490,18 @@
     <div class="grid2">
       <div class="card">
         <h2><span class="dot"></span>トレーナー</h2>
+        <div id="setTrainers">
         <div class="item"><div class="main"><div class="t">佐々木 健</div><div class="s">月火水木金土 / 09:00-21:00</div></div><div class="end"><span class="badge sage">稼働中</span></div></div>
         <div class="item"><div class="main"><div class="t">三浦 悠</div><div class="s">火木土 / 14:00-21:00</div></div><div class="end"><span class="badge sage">稼働中</span></div></div>
+        </div>
         <button class="btn sm ghost" style="margin-top:12px;">トレーナーを追加</button>
       </div>
       <div class="card todo">
         <h2><span class="dot"></span>部屋(スタジオ)</h2>
+        <div id="setRooms">
         <div class="item"><div class="main"><div class="t">スタジオA</div><div class="s">マシン中心 / 同時1組</div></div><div class="end"><span class="badge sage">利用中</span></div></div>
         <div class="item"><div class="main"><div class="t">スタジオB</div><div class="s">フリーウェイト・ストレッチ / 同時1組</div></div><div class="end"><span class="badge sage">利用中</span></div></div>
+        </div>
         <button class="btn sm ghost" style="margin-top:12px;">部屋を追加</button>
         <div class="todo-note">同一ジム内の複数部屋を前提。部屋の数・設備差(部屋によってできるメニューが変わるか)・予約時の割当ルール(自動/固定/手動)が未確定。→ ヒアリングB-8a</div>
       </div>
@@ -1505,8 +1517,12 @@
     </div>
   </section>
 
-  <!-- ---------- 管理マニュアル ---------- -->
+  <!-- ---------- 管理マニュアル(タブ外。ヘッダー右上のリンクから開く) ---------- -->
   <section class="view" id="a-manual">
+    <div class="row between" style="margin-bottom:14px;">
+      <h2 style="font-size:17px;">📖 使い方マニュアル</h2>
+      <button class="btn sm ghost" onclick="goA('a-today')">← 管理画面に戻る</button>
+    </div>
     <div class="card guide">
       <h3>1日の流れ</h3>
       <ol>
@@ -2001,14 +2017,47 @@ function calMode(mode) {
   document.getElementById('calWeekBtn').classList.toggle('ghost', day);
 }
 
-/* 店舗の切り替え(モックでは表示データは共通) */
+/* ------------------------------------------------------------------
+   店舗の切り替え。切替対象の領域(SWAP_IDS)の中身と経営データ(BI_DATA)を
+   店舗ごとに差し替える。藤野本店のHTMLはページ読み込み時にDOMから採取し、
+   相模湖駅前店のぶんだけ STORE_HTML に手書きする。
+   ------------------------------------------------------------------ */
+let curStore = '藤野本店';
+const SWAP_IDS = ['todayStats','todayTl','dayGrid','dayNote','memRows','salesStats','salesBreak','arRows',
+  'biKpi1','biKpi2','revCap','memCap','churnCap','heatCap','trainerRows','shareCap','followRows','biTrainerSel',
+  'setHours','setTrainers','setRooms','setCap','setStores','posMember'];
+const STORE_HTML = { '藤野本店': {}, '相模湖駅前店': {} };
+
 function storeChange(el) {
-  if (el.value === '全店舗を見る') {
-    el.selectedIndex = 0;
+  if (el.value === '_all') {
+    el.value = curStore;
     goA('a-stores');
     return;
   }
-  showToast(`${el.value} に切り替えました(モックのため表示データは共通です)`);
+  switchStore(el.value);
+}
+
+function switchStore(store) {
+  const s = document.getElementById('storeSel');
+  if (s) s.value = store;
+  if (store === curStore) return;
+  applyStore(store);
+  showToast(`${store} に切り替えました`);
+}
+
+function applyStore(store) {
+  curStore = store;
+  const set = STORE_HTML[store];
+  SWAP_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && set[id] != null) el.innerHTML = set[id];
+  });
+  const d = BI_DATA[store];
+  REVENUE = d.REVENUE; MEMBERS = d.MEMBERS; JOIN = d.JOIN; LEAVE = d.LEAVE; HEAT = d.HEAT;
+  renderRevenue(); renderMembers(); renderChurn(); renderHeat();
+  // 開いていた「表で見る」は古い店舗のデータなので閉じて破棄する
+  document.querySelectorAll('.tbl-view').forEach(el => { el.classList.remove('on'); delete el.dataset.filled; el.innerHTML = ''; });
+  document.querySelectorAll('.linkbtn').forEach(b => { if (b.textContent === '表を閉じる') b.textContent = '表で見る'; });
 }
 
 /* 店頭払いの記録 */
@@ -2042,10 +2091,43 @@ function togSw(btn) { btn.classList.toggle('on'); }
    密度=ヒートマップ(単一色ランプ)、単発の数字=グラフにしない。
    ------------------------------------------------------------------ */
 const MONTHS  = ['8月','9月','10月','11月','12月','1月','2月','3月','4月','5月','6月','7月'];
-const REVENUE = [480300, 495200, 512800, 498600, 521400, 468900, 534200, 552700, 561300, 588400, 596100, 612700];
-const MEMBERS = [21, 22, 23, 23, 24, 22, 24, 25, 26, 27, 27, 28];
-const JOIN    = [2, 2, 2, 1, 2, 1, 3, 2, 2, 2, 1, 2];
-const LEAVE   = [1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1];
+
+/* 店舗ごとの経営データ。店舗切替(applyStore)でグラフごと差し替える。
+   月次の整合: MEMBERS[i] - MEMBERS[i-1] === JOIN[i] - LEAVE[i] を守ること */
+const BI_DATA = {
+  '藤野本店': {
+    REVENUE: [480300, 495200, 512800, 498600, 521400, 468900, 534200, 552700, 561300, 588400, 596100, 612700],
+    MEMBERS: [21, 22, 23, 23, 24, 22, 24, 25, 26, 27, 27, 28],
+    JOIN:    [2, 2, 2, 1, 2, 1, 3, 2, 2, 2, 1, 2],
+    LEAVE:   [1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1],
+    HEAT: [[63,  50,  75,  88,  50,  100],
+           [88,  38,  75,  75,  63,  100],
+           [50,  25,  38,  75,  38,  63],
+           [75,  25,  38,  63,  50,  50],
+           [88,  38,  50,  50,  75,  38],
+           [100, 88,  63,  75,  88,  null],
+           [100, 75,  88,  63,  75,  null]],
+  },
+  /* 駅前店 = 開業2年目・1部屋・夜型(仕事帰り中心)・入れ替わり速め、という設定 */
+  '相模湖駅前店': {
+    REVENUE: [238400, 251900, 265100, 279800, 293400, 281600, 305200, 322900, 341800, 362500, 381700, 399300],
+    MEMBERS: [14, 15, 16, 17, 18, 17, 19, 20, 21, 22, 22, 23],
+    JOIN:    [2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 2],
+    LEAVE:   [1, 1, 1, 1, 1, 2, 0, 1, 1, 1, 1, 1],
+    HEAT: [[null, null, null, null, null, null],
+           [25,  13,  25,  38,  25,  63],
+           [38,  25,  38,  25,  38,  75],
+           [38,  50,  38,  50,  38,  50],
+           [63,  50,  63,  50,  63,  38],
+           [88,  75,  88,  75,  100, 63],
+           [100, 88,  75,  88,  88,  50]],
+  },
+};
+let REVENUE = BI_DATA['藤野本店'].REVENUE;
+let MEMBERS = BI_DATA['藤野本店'].MEMBERS;
+let JOIN    = BI_DATA['藤野本店'].JOIN;
+let LEAVE   = BI_DATA['藤野本店'].LEAVE;
+let HEAT    = BI_DATA['藤野本店'].HEAT;
 const yen = n => '¥' + n.toLocaleString('ja-JP');
 
 const tip = document.getElementById('tip');
@@ -2063,8 +2145,9 @@ function bindTip(el, html) {
 }
 
 /* 売上: 縦棒。値ラベルは全点に置かず、直近1本だけ(選択的な直接ラベル) */
-(function renderRevenue() {
+function renderRevenue() {
   const host = document.getElementById('chartRevenue');
+  host.innerHTML = '';
   const max = Math.max(...REVENUE);
   REVENUE.forEach((v, i) => {
     const last = i === REVENUE.length - 1;
@@ -2077,10 +2160,10 @@ function bindTip(el, html) {
     host.appendChild(col);
   });
   document.getElementById('revAxis').textContent = `最大 ${yen(max)} / 最小 ${yen(Math.min(...REVENUE))}`;
-})();
+}
 
 /* 在籍会員数: 折れ線 + クロスヘア。マーカーは8px、面との境に2pxのリング */
-(function renderMembers() {
+function renderMembers() {
   const svg = document.getElementById('chartMembers');
   const W = 340, H = 160, L = 26, R = 8, T = 12, B = 24;
   const min = Math.min(...MEMBERS) - 2, max = Math.max(...MEMBERS) + 1;
@@ -2102,20 +2185,22 @@ function bindTip(el, html) {
   g += `<line id="cross" x1="0" y1="${T}" x2="0" y2="${H - B}" stroke="var(--line)" stroke-width="1" opacity="0"/>`;
   svg.innerHTML = g;
   const cross = svg.querySelector('#cross');
-  svg.addEventListener('mousemove', e => {
+  // 再描画時にリスナーが積み重ならないよう、addEventListener でなく代入で持つ
+  svg.onmousemove = e => {
     const r = svg.getBoundingClientRect();
     const px = (e.clientX - r.left) / r.width * W;
     let i = Math.round((px - L) / ((W - L - R) / (MEMBERS.length - 1)));
     i = Math.max(0, Math.min(MEMBERS.length - 1, i));
     cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('opacity', '1');
     showTip(e, `<strong>${MONTHS[i]}末</strong><br>在籍 ${MEMBERS[i]}名<br>入会 ${JOIN[i]} / 退会 ${LEAVE[i]}`);
-  });
-  svg.addEventListener('mouseleave', () => { cross.setAttribute('opacity', '0'); hideTip(); });
-})();
+  };
+  svg.onmouseleave = () => { cross.setAttribute('opacity', '0'); hideTip(); };
+}
 
 /* 入会・退会: ゼロ基準の発散バー(色と位置の二重符号) */
-(function renderChurn() {
+function renderChurn() {
   const host = document.getElementById('chartChurn');
+  host.innerHTML = '';
   const max = Math.max(...JOIN, ...LEAVE);
   JOIN.forEach((j, i) => {
     const col = document.createElement('div');
@@ -2127,20 +2212,13 @@ function bindTip(el, html) {
     bindTip(col, `<strong>${MONTHS[i]}</strong><br>入会 ${j}名 / 退会 ${LEAVE[i]}名<br>純増 ${j - LEAVE[i] >= 0 ? '+' : ''}${j - LEAVE[i]}名`);
     host.appendChild(col);
   });
-})();
+}
 
-/* 稼働率: ヒートマップ。単一色を薄→濃(rainbow にしない) */
-(function renderHeat() {
+/* 稼働率: ヒートマップ。単一色を薄→濃(rainbow にしない)。データは HEAT(店舗別) */
+function renderHeat() {
   const days = ['月', '火', '水', '木', '金', '土'];
   const hours = ['09:00', '10:00', '11:00', '14:00', '16:00', '18:00', '19:00'];
-  //            月   火   水   木   金   土   (null = 営業時間外)
-  const data = [[63,  50,  75,  88,  50,  100],   // 09:00
-                [88,  38,  75,  75,  63,  100],   // 10:00
-                [50,  25,  38,  75,  38,  63],    // 11:00
-                [75,  25,  38,  63,  50,  50],    // 14:00
-                [88,  38,  50,  50,  75,  38],    // 16:00
-                [100, 88,  63,  75,  88,  null],  // 18:00
-                [100, 75,  88,  63,  75,  null]]; // 19:00
+  const data = HEAT;   // null = 営業時間外
   const host = document.getElementById('chartHeat');
   let h = '<div></div>' + days.map(d => `<div class="hd">${d}</div>`).join('');
   data.forEach((row, r) => {
@@ -2159,7 +2237,161 @@ function bindTip(el, html) {
   });
   document.getElementById('rampSw').innerHTML = [0.15, 0.35, 0.55, 0.75, 1].map(
     a => `<i style="background:rgba(192,103,74,${a})"></i>`).join('');
-})();
+}
+
+renderRevenue(); renderMembers(); renderChurn(); renderHeat();
+
+/* 藤野本店のHTMLは現物から採取(= HTMLに書いてあるものが本店の正) */
+SWAP_IDS.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) STORE_HTML['藤野本店'][id] = el.innerHTML;
+});
+
+/* 相模湖駅前店の画面データ。設定: 開業2年目・トレーナー2名(高橋+三浦が兼務)・
+   1部屋・営業10-22時の夜型・未収なし・入れ替わり速め */
+STORE_HTML['相模湖駅前店'] = {
+  todayStats: `
+      <div class="stat"><div class="l">本日の予約</div><div class="n">5<small>件</small></div><div class="sub">実施済 1 / 残り 4</div></div>
+      <div class="stat"><div class="l">本日の売上(見込)</div><div class="n">¥12,100</div><div class="sub">都度1件・体験1件</div></div>
+      <div class="stat"><div class="l">未収</div><div class="n">0<small>件</small></div><div class="sub">¥0 — なし</div></div>`,
+  todayTl: `<div class="ln"></div>
+        <div class="tlrow done"><div class="hh">10:00</div><div class="pin"></div>
+          <div class="tlcard"><div class="who"><div class="n">岡部 秀行</div><div class="s">回数券消化(残3)/ 60分</div></div>
+            <span class="badge sage">実施済</span><button class="btn sm ghost" onclick="openDrawer()">カルテ</button></div></div>
+        <div class="tlrow empty"><div class="hh">11:00</div><div class="pin"></div><div class="tlcard">空き枠(公開中)</div></div>
+        <div class="tlrow"><div class="hh">14:00</div><div class="pin"></div>
+          <div class="tlcard"><div class="who"><div class="n">藤本 大地 <span class="badge sky">全店プラン</span></div><div class="s">月8回プラン消化 / 60分</div></div>
+            <button class="btn sm" onclick="openSession(this)">記録しながら実施</button></div></div>
+        <div class="tlrow"><div class="hh">18:00</div><div class="pin"></div>
+          <div class="tlcard"><div class="who"><div class="n">石田 舞 <span class="badge ember">頻度低下</span></div><div class="s">月4回プラン消化 / 60分</div></div>
+            <button class="btn sm" onclick="openSession(this)">記録しながら実施</button></div></div>
+        <div class="tlrow"><div class="hh">19:00</div><div class="pin"></div>
+          <div class="tlcard"><div class="who"><div class="n">内村 玲奈</div><div class="s">都度払い / 60分</div></div>
+            <button class="btn sm" onclick="openSession(this)">記録しながら実施</button></div></div>
+        <div class="tlrow"><div class="hh">20:00</div><div class="pin"></div>
+          <div class="tlcard"><div class="who"><div class="n">三谷 ことは <span class="badge clay">体験</span></div><div class="s">体験セッション / 30分 / 初回</div></div>
+            <button class="btn sm" onclick="openSession(this)">記録しながら実施</button></div></div>`,
+  dayGrid: `
+        <div></div>
+        <div class="hd">09:00</div><div class="hd">10:00</div><div class="hd">11:00</div><div class="hd">12-13</div>
+        <div class="hd">14:00</div><div class="hd">15:00</div><div class="hd">16:00</div><div class="hd">17:00</div>
+        <div class="hd">18:00</div><div class="hd">19:00</div><div class="hd">20:00</div>
+
+        <div class="stf"><div class="n">高橋 みずき</div><div class="s">出勤 10:00 - 22:00</div></div>
+        <div class="cell closed">営業前</div>
+        <div class="cell booked"><div class="nm">内村 玲奈</div><div class="tr">都度</div></div>
+        <div class="cell open">空き</div>
+        <div class="cell closed">休憩</div>
+        <div class="cell booked"><div class="nm">藤本 大地</div><div class="tr">プラン</div></div>
+        <div class="cell open">空き</div>
+        <div class="cell open">空き</div>
+        <div class="cell booked"><div class="nm">早川 誠</div><div class="tr">プラン</div></div>
+        <div class="cell booked"><div class="nm">岡部 秀行</div><div class="tr">回数券</div></div>
+        <div class="cell open">空き</div>
+        <div class="cell open">空き</div>
+
+        <div class="stf"><div class="n">三浦 悠</div><div class="s">兼務(火木土は本店)</div></div>
+        <div class="cell closed">本店勤務</div>
+        <div class="cell closed">本店勤務</div>
+        <div class="cell closed">本店勤務</div>
+        <div class="cell closed">本店勤務</div>
+        <div class="cell closed">本店勤務</div>
+        <div class="cell closed">本店勤務</div>
+        <div class="cell closed">本店勤務</div>
+        <div class="cell closed">本店勤務</div>
+        <div class="cell closed">本店勤務</div>
+        <div class="cell closed">本店勤務</div>
+        <div class="cell closed">本店勤務</div>`,
+  dayNote: `相模湖駅前店は1部屋のため、同時利用の上限は1組です(部屋の表記は省略)。三浦トレーナーは兼務で、この日(木曜)は藤野本店の勤務日です。`,
+  memRows: `
+          <tr class="clickable" onclick="openDrawer()">
+            <td><strong>藤本 大地</strong><br><span class="muted">ふじもと だいち / 36歳</span></td>
+            <td>月8回 <span class="badge sky">全店</span></td><td class="num">6</td><td>07-25</td><td>07-27 14:00</td>
+            <td><span class="badge sage">正常</span></td><td>→</td>
+          </tr>
+          <tr class="clickable" onclick="openDrawer()">
+            <td><strong>石田 舞</strong><br><span class="muted">いしだ まい / 31歳</span></td>
+            <td>月4回</td><td class="num" style="color:var(--ember)">1</td><td>07-18</td><td>07-27 18:00</td>
+            <td><span class="badge sage">正常</span></td><td>→</td>
+          </tr>
+          <tr class="clickable" onclick="openDrawer()">
+            <td><strong>岡部 秀行</strong><br><span class="muted">おかべ ひでゆき / 48歳</span></td>
+            <td>回数券5回</td><td class="num">3</td><td>07-27</td><td>07-31 18:00</td>
+            <td><span class="badge sage">正常</span></td><td>→</td>
+          </tr>
+          <tr class="clickable" onclick="openDrawer()">
+            <td><strong>内村 玲奈</strong><br><span class="muted">うちむら れな / 27歳</span></td>
+            <td>都度</td><td class="num">—</td><td>07-24</td><td>07-27 19:00</td>
+            <td><span class="badge sage">正常</span></td><td>→</td>
+          </tr>
+          <tr class="clickable" onclick="openDrawer()">
+            <td><strong>早川 誠</strong><br><span class="muted">はやかわ まこと / 55歳</span></td>
+            <td>月4回</td><td class="num">4</td><td>07-26</td><td>07-31 17:00</td>
+            <td><span class="badge sage">正常</span></td><td>→</td>
+          </tr>
+          <tr class="clickable" onclick="openDrawer()">
+            <td><strong>三谷 ことは</strong><br><span class="muted">みたに ことは / 24歳</span></td>
+            <td><span class="badge clay">体験</span></td><td class="num">—</td><td>—</td><td>07-27 20:00</td>
+            <td>—</td><td>→</td>
+          </tr>`,
+  salesStats: `
+      <div class="stat"><div class="l">当月売上(7月)</div><div class="n">¥399,300</div><div class="sub">前月比 +4.6%</div></div>
+      <div class="stat"><div class="l">在籍会員</div><div class="n">23<small>名</small></div><div class="sub">今月 入会2 / 退会1</div></div>
+      <div class="stat"><div class="l">未収合計</div><div class="n">¥0</div><div class="sub">0件 — なし</div></div>`,
+  salesBreak: `
+          <tr><td>月会費(サブスク)</td><td class="num">12</td><td class="num">¥343,200</td><td>カード自動</td></tr>
+          <tr><td>回数券(5回)</td><td class="num">1</td><td class="num">¥41,800</td><td>カード</td></tr>
+          <tr><td>都度払い</td><td class="num">1</td><td class="num">¥8,800</td><td>店頭(Airペイ)</td></tr>
+          <tr><td>体験セッション</td><td class="num">1</td><td class="num">¥3,300</td><td>店頭(現金)</td></tr>
+          <tr><td>オプション(体組成測定)</td><td class="num">2</td><td class="num">¥2,200</td><td>店頭(現金)</td></tr>
+          <tr><td><strong>合計</strong></td><td class="num"><strong>17</strong></td><td class="num"><strong>¥399,300</strong></td><td>—</td></tr>`,
+  arRows: `<tr><td colspan="5" style="text-align:center;color:var(--ink-soft);padding:18px 0;">現在、未収・決済失敗はありません 🌿</td></tr>`,
+  biKpi1: `
+      <div class="stat"><div class="l">月次固定収益(MRR)</div><div class="n">¥343,200</div><div class="sub">月会費12名 / 売上の85.9%</div></div>
+      <div class="stat"><div class="l">会員あたり月間単価</div><div class="n">¥17,361</div><div class="sub">前月 ¥17,350(+0.1%)</div></div>
+      <div class="stat"><div class="l">枠の稼働率(7月)</div><div class="n">61<small>%</small></div><div class="sub">提供 140枠 / 予約 85枠</div></div>`,
+  biKpi2: `
+      <div class="stat"><div class="l">月次継続率(12か月平均)</div><div class="n">94.7<small>%</small></div><div class="sub">解約率 5.3% / 月</div></div>
+      <div class="stat"><div class="l">平均継続月数</div><div class="n">19<small>か月</small></div><div class="sub">解約率からの推計</div></div>
+      <div class="stat todo"><div class="l">会員生涯価値(LTV)</div><div class="n">¥330,000</div><div class="sub">単価 × 平均継続月数</div>
+        <div class="todo-note">LTVの計算式(単価に何を含めるか・入会金や物販を入れるか)が未確定。数字が独り歩きしやすいので定義を先に決める。</div>
+      </div>`,
+  revCap: `直近12か月で +67.5%。開業2年目で、会員数の伸びと連動しています。`,
+  memCap: `14名 → 23名(+64%)`,
+  churnCap: `12か月で 入会22 / 退会12 — 本店より入れ替わりが速い`,
+  heatCap: `夜の帯から埋まる駅前型です。平日の日中がほぼ空いています。`,
+  trainerRows: `
+            <tr><td>高橋 みずき</td><td class="num">62</td><td class="num">¥291,500</td>
+              <td><div class="hbar"><i style="width:73%"></i></div><span class="muted">73%</span></td></tr>
+            <tr><td>三浦 悠(兼務)</td><td class="num">23</td><td class="num">¥107,800</td>
+              <td><div class="hbar"><i style="width:27%"></i></div><span class="muted">27%</span></td></tr>`,
+  shareCap: `指名率: 高橋 68% / 三浦 32%`,
+  followRows: `
+        <div class="item"><div class="main"><div class="t">石田 舞</div><div class="s">来店頻度が低下(月4回 → 月2回)</div></div>
+          <div class="end"><span class="badge ember">▲ 頻度低下</span></div></div>
+        <div class="item"><div class="main"><div class="t">三谷 ことは</div><div class="s">体験から4日経過・入会手続きなし</div></div>
+          <div class="end"><span class="badge ember">▲ 体験後フォロー</span></div></div>`,
+  biTrainerSel: `<option>全トレーナー</option><option>高橋 みずき</option><option>三浦 悠</option>`,
+  setHours: `
+        <div class="kv"><span class="k">平日</span><span class="v">10:00 - 22:00</span></div>
+        <div class="kv"><span class="k">土曜</span><span class="v">10:00 - 20:00</span></div>
+        <div class="kv"><span class="k">定休日</span><span class="v">日曜・祝日</span></div>
+        <div class="kv"><span class="k">1枠の長さ</span><span class="v">60分</span></div>
+        <div class="kv"><span class="k">休憩帯</span><span class="v">12:00 - 14:00</span></div>`,
+  setTrainers: `
+        <div class="item"><div class="main"><div class="t">高橋 みずき</div><div class="s">月火水金土 / 10:00-22:00</div></div><div class="end"><span class="badge sage">稼働中</span></div></div>
+        <div class="item"><div class="main"><div class="t">三浦 悠(兼務)</div><div class="s">月水金 / 14:00-22:00 ※火木土は藤野本店</div></div><div class="end"><span class="badge sage">稼働中</span></div></div>`,
+  setRooms: `
+        <div class="item"><div class="main"><div class="t">スタジオ</div><div class="s">マシン+フリーウェイト / 同時1組</div></div><div class="end"><span class="badge sage">利用中</span></div></div>`,
+  setCap: `
+        <div class="kv"><span class="k">同一時間帯の最大予約数</span><span class="v">1組(部屋数と同じ)</span></div>
+        <div class="kv"><span class="k">店内の同時滞在の上限</span><span class="v">2名(体験・見学を含む)</span></div>
+        <div class="kv"><span class="k">上限に達した枠</span><span class="v">会員側に「×」と表示</span></div>`,
+  setStores: `
+        <div class="item"><div class="main"><div class="t">藤野本店</div><div class="s">トレーナー2名 / 2部屋 / 09:00-21:00</div></div><div class="end"><span class="badge sage">営業中</span></div></div>
+        <div class="item"><div class="main"><div class="t">相模湖駅前店 <span class="badge sky">この画面</span></div><div class="s">トレーナー2名 / 1部屋 / 10:00-22:00</div></div><div class="end"><span class="badge sage">営業中</span></div></div>`,
+  posMember: `<option>岡部 秀行</option><option>藤本 大地</option><option>石田 舞</option><option>内村 玲奈</option><option>早川 誠</option><option>三谷 ことは(体験)</option>`,
+};
 
 /* 表で見る(色だけに頼らないための代替表現) */
 const TABLES = {
