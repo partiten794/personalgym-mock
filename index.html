@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>パーソナルジム 予約・決済・顧客管理(モックアップ)</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,16 +20,16 @@
        rose=キャンセル・未収・警告 sky=情報・トレーナー sand=下地
      ========================================================================== */
   :root {
-    --sand: #F6F1E9;
+    --sand: #F7F0E4;
     --card: #ffffff;
     --ink: #1B1A18;        /* 純黒にしない(わずかに温かい黒) */
     --ink-soft: #6E6A63;
     --line: #E6DFD4;
-    --clay: #C0674A;       --clay-soft: #F7EAE4;  --clay-deep: #A4543A;
-    --sage: #7C9070;       --sage-soft: #EDF1E9;
-    --ember: #D0913F;      --ember-soft: #FAF0DF;
-    --rose: #B8465C;       --rose-soft: #FAE9EC;
-    --sky: #5C87A3;        --sky-soft: #E9F0F4;
+    --clay: #C85A33;       --clay-soft: #FAE9E0;  --clay-deep: #A8431F;
+    --sage: #6C9A5B;       --sage-soft: #EAF3E4;
+    --ember: #DB8A28;      --ember-soft: #FCEFD9;
+    --rose: #C63B55;       --rose-soft: #FBE7EB;
+    --sky: #4B89B0;        --sky-soft: #E4F0F8;
     --radius: 18px;        /* パターンB = 角丸大きめ */
     --radius-sm: 12px;
   }
@@ -45,9 +45,9 @@
   body::before {
     content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
     background:
-      radial-gradient(60% 40% at 8% 0%,   rgba(192,103,74,.10), transparent 70%),
-      radial-gradient(50% 38% at 95% 6%,  rgba(124,144,112,.10), transparent 70%),
-      radial-gradient(60% 45% at 50% 100%, rgba(92,135,163,.08), transparent 70%);
+      radial-gradient(60% 40% at 8% 0%,   rgba(200,90,51,.10), transparent 70%),
+      radial-gradient(50% 38% at 95% 6%,  rgba(108,154,91,.10), transparent 70%),
+      radial-gradient(60% 45% at 50% 100%, rgba(75,137,176,.08), transparent 70%);
   }
   b, strong { font-weight: 700; }
   h1, h2, h3 { font-weight: 700; line-height: 1.35; }
@@ -168,9 +168,9 @@
     position: relative; overflow: hidden; width: 100%; min-height: 62px;
     border: none; border-radius: 20px; cursor: pointer;
     display: flex; align-items: center; justify-content: center; gap: 10px;
-    background: linear-gradient(135deg, #CD7856 0%, var(--clay) 45%, var(--clay-deep) 100%);
+    background: linear-gradient(135deg, #D96F45 0%, var(--clay) 45%, var(--clay-deep) 100%);
     color: #fff; font-size: 16.5px; font-weight: 700; letter-spacing: .05em;
-    box-shadow: 0 8px 22px rgba(192,103,74,.38), inset 0 1px 0 rgba(255,255,255,.22);
+    box-shadow: 0 8px 22px rgba(200,90,51,.38), inset 0 1px 0 rgba(255,255,255,.22);
     transition: transform .16s cubic-bezier(.2,.7,.3,1), box-shadow .25s ease, background .3s ease;
   }
   .unlock-btn:active { transform: scale(.97); }
@@ -188,11 +188,11 @@
   .unlock-btn.busy { animation: unlockpulse 1s ease-in-out infinite; }
   .unlock-btn.busy::after { animation-duration: 1.1s; }
   @keyframes unlockpulse {
-    50% { box-shadow: 0 8px 30px rgba(192,103,74,.62), inset 0 1px 0 rgba(255,255,255,.22); }
+    50% { box-shadow: 0 8px 30px rgba(200,90,51,.62), inset 0 1px 0 rgba(255,255,255,.22); }
   }
   .unlock-btn.open {
-    background: linear-gradient(135deg, #8CA07F 0%, var(--sage) 60%, #66795C 100%);
-    box-shadow: 0 8px 22px rgba(124,144,112,.42), inset 0 1px 0 rgba(255,255,255,.22);
+    background: linear-gradient(135deg, #83AC6E 0%, var(--sage) 60%, #578149 100%);
+    box-shadow: 0 8px 22px rgba(108,154,91,.42), inset 0 1px 0 rgba(255,255,255,.22);
   }
   .unlock-btn.open .lk .shackle { transform: rotate(-30deg); }   /* 鍵が開く */
 
@@ -311,7 +311,7 @@
   .wk .hd small { display: block; font-weight: 400; color: var(--ink-soft); font-size: 10.5px; }
   .wk .hr { display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; color: var(--ink-soft); }
   .cell { border: 1px solid var(--line); border-radius: 8px; background: #fff; min-height: 42px; padding: 5px 6px; cursor: pointer; line-height: 1.35; }
-  .cell.booked { background: var(--clay-soft); border-color: #E7C9BC; }
+  .cell.booked { background: var(--clay-soft); border-color: #EFC5B3; }
   .cell.booked .nm { font-weight: 500; font-size: 11.5px; }
   .cell.booked .tr { font-size: 10px; color: var(--clay-deep); }
   .cell.closed { background: #F2EEE7; border-style: dashed; color: #B0A99E; text-align: center; font-size: 10.5px; }
@@ -372,12 +372,12 @@
      経営分析のグラフ
      系列色は UI パレットとは別の「グラフ用ステップ」を使う(水彩調の低彩度色は
      識別色として不合格だったため。検証: dataviz の validate_palette.js 全PASS)
-       --c-rev   #C0674A  売上・固定収益(clay と同値)
+       --c-rev   #C85A33  売上・固定収益(clay と同値)
        --c-mem   #2F7EAA  会員数・入会(sky を彩度up)
-       --c-lost  #B8465C  退会・解約・未収(rose と同値)
+       --c-lost  #C63B55  退会・解約・未収(rose と同値)
      ルールは本体と同じく 1色=1意味。順序は固定で、循環させない。
      ========================================================================== */
-  :root { --c-rev: #C0674A; --c-mem: #2F7EAA; --c-lost: #B8465C; --grid: #EFE9DF; }
+  :root { --c-rev: #C85A33; --c-mem: #2F7EAA; --c-lost: #C63B55; --grid: #EFE9DF; }
 
   .chart-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; flex-wrap: wrap; }
   .chart-head .cap { font-size: 12px; color: var(--ink-soft); }
@@ -529,6 +529,34 @@
   .guide ol, .guide ul { margin-left: 1.2em; font-size: 14px; }
   .guide li { margin-bottom: 5px; }
   .foot { text-align: center; font-size: 11px; color: var(--ink-soft); padding: 24px 0 8px; }
+
+  /* ==========================================================================
+     スマホ幅の調整
+     会員画面はもともと460px設計なので触らない。崩れていたのは管理画面:
+       ①素のtableのはみ出し → 幅広テーブルは .scrollx で横スクロールに(HTML側)
+       ②グラフ・カードの2カラムが縮みきれない → 1カラムに畳む
+       ③タブの多段折返し → 横スクロール式に
+     ========================================================================== */
+  .grid2 > *, .grid3 > * { min-width: 0; }   /* グリッド子のmin-content超過を止める */
+  .tabbar { padding-bottom: env(safe-area-inset-bottom); }
+  @media (max-width: 720px) {
+    .desk { padding: 14px 14px 80px; }
+    .desk .grid2 { grid-template-columns: 1fr; }
+    .toptabs { flex-wrap: nowrap; overflow-x: auto; margin: 0 -14px 20px; padding: 0 14px; -webkit-overflow-scrolling: touch; }
+    .toptabs button { flex: 0 0 auto; white-space: nowrap; }
+    .head { flex-wrap: wrap; }
+    .head h1 { font-size: 22px; }
+    .desk .head .who { text-align: left; }   /* 折返して2行目に落ちたら左揃えに */
+    /* スクロール前提のテーブルはセルを1行に保つ(縦に潰れて読めなくなるのを防ぐ) */
+    .scrollx table { font-size: 13px; }
+    .scrollx td { white-space: nowrap; }
+  }
+  @media (max-width: 480px) {
+    .stat .n { font-size: 22px; }
+    /* 棒グラフ12本+月ラベルが最小幅に収まるように */
+    .bars { gap: 3px; }
+    .bars .lbl, .divg .lbl { font-size: 9px; }
+  }
 </style>
 </head>
 <body>
@@ -1104,6 +1132,7 @@
     </div>
 
     <div class="card" style="padding:8px 10px;">
+      <div class="scrollx">
       <table>
         <thead><tr>
           <th>会員</th><th>プラン</th><th class="num">残回数</th><th>最終来店</th><th>次回予約</th><th>決済</th><th></th>
@@ -1146,6 +1175,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
     <div class="todo">
       <div class="muted">「4週間来店なし」は継続フォローの目印として自動で付きます。</div>
@@ -1166,6 +1196,7 @@
         <h2 style="margin-bottom:0;"><span class="dot"></span>売上の内訳(7月)</h2>
         <button class="btn sm" onclick="openSheet('sheetPos')">店頭払いを記録</button>
       </div>
+      <div class="scrollx">
       <table>
         <thead><tr><th>種別</th><th class="num">件数</th><th class="num">金額</th><th>決済手段</th></tr></thead>
         <tbody id="salesBreak">
@@ -1176,6 +1207,7 @@
           <tr><td><strong>合計</strong></td><td class="num"><strong>28</strong></td><td class="num"><strong>¥612,800</strong></td><td>—</td></tr>
         </tbody>
       </table>
+      </div>
       <div class="todo" style="margin-top:12px;">
         <div class="muted">現金・Airペイなどレジ前でのお支払いは「店頭払いを記録」から入力すると、ここに合算されます。</div>
         <div class="todo-note">Airペイ等の決済端末は取引データの自動連携ができない前提(手入力で記録し、日次で端末側の売上と突合する運用)。端末の種類と締めの手順を確認する。→ ヒアリングA-3a</div>
@@ -1184,6 +1216,7 @@
 
     <div class="card">
       <h2><span class="dot"></span>要対応(未収・失敗)</h2>
+      <div class="scrollx">
       <table>
         <thead><tr><th>会員</th><th>内容</th><th class="num">金額</th><th>状態</th><th></th></tr></thead>
         <tbody id="arRows">
@@ -1191,6 +1224,7 @@
           <tr><td>森本 恵</td><td>月会費 7月分</td><td class="num">¥8,800</td><td><span class="badge ember">カード期限切れ</span></td><td><button class="btn sm ghost">再決済を依頼</button></td></tr>
         </tbody>
       </table>
+      </div>
       <div class="todo" style="margin-top:12px;">
         <div class="muted">未収 = 実施済かつ決済未完了の状態です。</div>
         <div class="todo-note">未収の判定タイミング・督促の手段(自動メール/手動)・返金の承認者が未確定。トレーナー複数時の売上按分も未決。→ ヒアリングA-4</div>
@@ -1282,6 +1316,7 @@
       <!-- トレーナー別(横棒 = 単一系列の magnitude) -->
       <div class="card">
         <h2><span class="dot"></span>トレーナー別の実績(7月)</h2>
+        <div class="scrollx">
         <table>
           <thead><tr><th>トレーナー</th><th class="num">セッション</th><th class="num">売上</th><th style="width:110px;">構成比</th></tr></thead>
           <tbody id="trainerRows">
@@ -1291,6 +1326,7 @@
               <td><div class="hbar"><i style="width:33%"></i></div><span class="muted">33%</span></td></tr>
           </tbody>
         </table>
+        </div>
         <div class="todo" style="margin-top:12px;">
           <div class="muted" id="shareCap">指名率: 佐々木 72% / 三浦 28%</div>
           <div class="todo-note">売上の帰属(指名した会員の月会費を誰の売上とするか)が未確定。歩合給がある場合はここが給与計算の根拠になる。→ ヒアリングA-4</div>
@@ -1333,6 +1369,7 @@
 
     <div class="card">
       <h2><span class="dot"></span>店舗別の当月状況(7月)</h2>
+      <div class="scrollx">
       <table>
         <thead><tr><th>店舗</th><th class="num">在籍</th><th class="num">売上</th><th class="num">前月比</th><th class="num">稼働率</th><th class="num">未収</th><th>入会 / 退会</th><th></th></tr></thead>
         <tbody>
@@ -1348,6 +1385,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
       <div class="muted" style="margin-top:10px;">行をクリックすると、その店舗の管理画面に切り替わります。画面右上の店舗名からも切り替えられます。</div>
     </div>
 
@@ -1429,6 +1467,7 @@
 
     <div class="card">
       <h2><span class="dot"></span>プラン・料金マスタ</h2>
+      <div class="scrollx">
       <table>
         <thead><tr><th>プラン名</th><th class="num">月額(税込)</th><th class="num">回数</th><th>利用範囲</th><th>状態</th><th></th></tr></thead>
         <tbody>
@@ -1438,6 +1477,7 @@
           <tr><td>体験セッション</td><td class="num">¥3,300</td><td class="num">1</td><td>所属店のみ</td><td><span class="badge sage">有効</span></td><td><button class="btn sm ghost">編集</button></td></tr>
         </tbody>
       </table>
+      </div>
       <button class="btn sm ghost" style="margin-top:12px;">プランを追加</button>
       <div class="muted" style="margin-top:10px;">「全店舗」のプランを持つ会員は、予約時に店舗を選べます(→ 全店舗タブ)。</div>
     </div>
@@ -1844,6 +1884,7 @@
   </div>
 
   <div class="pane" id="p-pay">
+    <div class="scrollx">
     <table>
       <thead><tr><th>日付</th><th>内容</th><th class="num">金額</th><th>状態</th></tr></thead>
       <tbody>
@@ -1853,6 +1894,7 @@
         <tr><td>04-15</td><td>10回券</td><td class="num">¥79,200</td><td><span class="badge sage">完了</span></td></tr>
       </tbody>
     </table>
+    </div>
     <div class="row" style="gap:10px;margin-top:12px;"><button class="btn sm ghost">領収書を発行</button><button class="btn sm ghost">返金する</button></div>
   </div>
 
@@ -2228,7 +2270,7 @@ function renderHeat() {
       const a = 0.10 + (v / 100) * 0.90;                    // 薄→濃(単一色ランプ)
       const dark = v >= 75;
       h += `<div class="cl" data-d="${days[c]}" data-h="${hours[r]}" data-v="${v}"
-              style="background:rgba(192,103,74,${a.toFixed(2)});color:${dark ? '#fff' : 'var(--ink)'}">${v}</div>`;
+              style="background:rgba(200,90,51,${a.toFixed(2)});color:${dark ? '#fff' : 'var(--ink)'}">${v}</div>`;
     });
   });
   host.innerHTML = h;
@@ -2236,7 +2278,7 @@ function renderHeat() {
     bindTip(cell, `<strong>${cell.dataset.d}曜 ${cell.dataset.h}</strong><br>稼働率 ${cell.dataset.v}%`);
   });
   document.getElementById('rampSw').innerHTML = [0.15, 0.35, 0.55, 0.75, 1].map(
-    a => `<i style="background:rgba(192,103,74,${a})"></i>`).join('');
+    a => `<i style="background:rgba(200,90,51,${a})"></i>`).join('');
 }
 
 renderRevenue(); renderMembers(); renderChurn(); renderHeat();
